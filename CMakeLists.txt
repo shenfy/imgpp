@@ -1,0 +1,45 @@
+#Project information
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+
+PROJECT(libimgpp)
+
+SET(${PROJECT_NAME}_MAJOR_VERSION 1)
+SET(${PROJECT_NAME}_MINOR_VERSION 0)
+SET(${PROJECT_NAME}_PATCH_LEVEL 0)
+
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_BUILD_TYPE Release)
+
+IF(WIN32)
+  # these packages should be managed by vcpkg
+ELSE()
+  FIND_PACKAGE(PNG REQUIRED)
+  FIND_PACKAGE(JPEG REQUIRED)
+  INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR})
+ENDIF()
+
+#build files
+FILE(GLOB HPP_FILES include/*.hpp)
+ADD_LIBRARY(imgpp src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp src/jpegimg.cpp src/helper.cpp ${HPP_FILES})
+SET_PROPERTY(TARGET imgpp PROPERTY POSITION_INDEPENDENT_CODE ON)
+IF(NOT WIN32)
+  TARGET_LINK_LIBRARIES(imgpp ${PNG_LIBRARY} ${JPEG_LIBRARY} ${ZLIB_LIBRARY})
+ENDIF()
+
+ADD_EXECUTABLE(testcase src/testcase.cpp)
+TARGET_LINK_LIBRARIES(testcase imgpp)
+
+# find_package(OpenCV REQUIRED)
+# include_directories(${OpenCV_INCLUDE_DIRS})
+# ADD_EXECUTABLE(cvtest src/cvtest.cpp)
+# TARGET_LINK_LIBRARIES(cvtest imgpp ${OpenCV_LIBS})
+
+#install
+INSTALL(FILES ${HPP_FILES} DESTINATION include/imgpp)
+IF(WIN32)
+    INSTALL(TARGETS imgpp ARCHIVE CONFIGURATIONS Debug DESTINATION lib/Debug)
+    INSTALL(TARGETS imgpp ARCHIVE CONFIGURATIONS Release DESTINATION lib/Release)
+ELSE()
+    INSTALL(TARGETS imgpp DESTINATION lib)
+ENDIF()
