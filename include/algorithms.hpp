@@ -22,7 +22,7 @@ inline void static_for(const TCallback &callback) {
  * @param callback callback function receiving (x, y, z, c, ptrs) as argument.
  */
 template<typename TImgs, typename TCallback>
-void ZipTransform(TImgs &imgs, TCallback callback) {
+void ZipTransform(TImgs &&imgs, TCallback callback) {
   constexpr size_t num_imgs = std::tuple_size<typename std::remove_reference<TImgs>::type>::value;
   std::array<uint8_t*, num_imgs> ptrs;
   std::array<uint8_t, num_imgs> steps;
@@ -65,7 +65,7 @@ void ZipTransform(TImgs &imgs, TCallback callback) {
  * @param callback callback function receiving (x, y, z, ptrs) as argument.
  */
 template<typename TImgs, typename TCallback>
-void ZipTransformPixel(TImgs &imgs, TCallback callback) {
+void ZipTransformPixel(TImgs &&imgs, TCallback callback) {
   constexpr size_t num_imgs = std::tuple_size<typename std::remove_reference<TImgs>::type>::value;
   std::array<uint8_t*, num_imgs> ptrs;
   std::array<uint32_t, num_imgs> steps;
