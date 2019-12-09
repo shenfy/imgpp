@@ -397,6 +397,7 @@ namespace imgpp {
     void CopyFrom(const Img& src) {
       buffer_.CopyFrom(src.buffer_);
       entire_img_ = src.entire_img_;
+      entire_img_.data_ = buffer_.GetBuffer();
     }
 
     //! Deep copy from an ROI, ignoring the original pitch and alignment
