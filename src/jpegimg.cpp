@@ -1,5 +1,5 @@
-#include "../include/imgpp.hpp"
 #include "../include/loaders.hpp"
+#include "../include/imgpp.hpp"
 #include <jpeglib.h>
 #include <jerror.h>
 #include <cstdio>

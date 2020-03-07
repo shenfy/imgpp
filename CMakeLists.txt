@@ -21,7 +21,7 @@ ENDIF()
 
 #build files
 FILE(GLOB HPP_FILES include/*.hpp)
-ADD_LIBRARY(imgpp src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp src/jpegimg.cpp src/helper.cpp ${HPP_FILES})
+ADD_LIBRARY(imgpp src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp src/jpegimg.cpp src/helper.cpp src/bson.cpp ${HPP_FILES})
 SET_PROPERTY(TARGET imgpp PROPERTY POSITION_INDEPENDENT_CODE ON)
 IF(NOT WIN32)
   TARGET_LINK_LIBRARIES(imgpp ${PNG_LIBRARY} ${JPEG_LIBRARY} ${ZLIB_LIBRARY})

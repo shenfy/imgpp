@@ -1,6 +1,6 @@
-#include "../include/imgpp.hpp"
 #include "../include/loaders.hpp"
 #include <png.h>
+#include "../include/imgpp.hpp"
 
 namespace imgpp {
 

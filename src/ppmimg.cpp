@@ -1,8 +1,8 @@
-#include "../include/imgpp.hpp"
+#include "../include/loaders.hpp"
 #include <cstring>
 #include <fstream>
 #include <string>
-#include "../include/loaders.hpp"
+#include "../include/imgpp.hpp"
 #include "stringparser.h"
 
 namespace {
