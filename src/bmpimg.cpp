@@ -1,6 +1,6 @@
-#include "../include/imgpp.hpp"
-#include <fstream>
 #include "../include/loaders.hpp"
+#include <fstream>
+#include "../include/imgpp.hpp"
 
 namespace {
 

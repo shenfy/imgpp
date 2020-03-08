@@ -21,6 +21,12 @@ int main(int argc, char *argv[]) {
   imgpp::Load(input_filename.c_str(), img, false);
   imgpp::Write(output_filename.c_str(), img.ROI());
 
+  imgpp::Write("test.bson", img.ROI(), true);
+  imgpp::Img img_bson;
+  if (imgpp::Load("test.bson", img_bson)) {
+    imgpp::Write("test.bson.png", img_bson.ROI());
+  }
+
   // imgpp::Img resized;
   // resized.SetSize(480, 480, 1, 3, 8);
   // imgpp::ipp_binding::ResizeInfo<imgpp::ipp_binding::INTERP_CUBIC> resize_info(

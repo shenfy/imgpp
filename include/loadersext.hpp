@@ -1,7 +1,7 @@
 #ifndef IMGPP_LOADERSEXT_HPP
 #define IMGPP_LOADERSEXT_HPP
 
-/*! \file imgpp_loaders.hpp */
+/*! \file loadersext.hpp */
 
 #include <memory>
 

@@ -26,7 +26,7 @@ namespace imgpp {
     ImgROI(uint8_t *src, uint32_t w, uint32_t h, uint32_t c,
       uint32_t bpc, uint32_t pitch, bool is_float, bool is_signed) :
       data_(src), width_(w), height_(h), channel_(c), depth_(1), bpc_(bpc),
-      is_signed_(is_signed), is_float_(is_float), pitch_(pitch), slice_pitch_(pitch) {}
+      is_signed_(is_signed), is_float_(is_float), pitch_(pitch), slice_pitch_(pitch * h) {}
 
     //! Constructor for a 3D image with known dimension.
     ImgROI(uint8_t *src, uint32_t w, uint32_t h, uint32_t depth, uint32_t c,

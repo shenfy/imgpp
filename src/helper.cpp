@@ -73,6 +73,11 @@ bool Load(const char *fn, Img &img, bool flip_y) {
     return LoadPFM(fn, img, flip_y);
   } else if (0 == filename.compare(filename.size() - 3, 3, "ppm")) {
     return LoadPPM(fn, img, flip_y);
+  } else if (0 == filename.compare(filename.size() - 4, 4, "bson")) {
+    if (flip_y == true) {  // does NOT support y flipping for bson
+      return false;
+    }
+    return LoadBSON(fn, img);
   } else {
     return false;
   }
@@ -113,19 +118,22 @@ bool Write(const char *fn, const ImgROI &roi, bool flip_y) {
   std::string filename(fn);
   std::transform(filename.begin(), filename.end(), filename.begin(), tolower);
 
-  if (0 == filename.compare(filename.size() - 3, 3, "bmp"))
+  if (0 == filename.compare(filename.size() - 3, 3, "bmp")) {
     return WriteBMP(fn, roi, flip_y);
-  else if (0 == filename.compare(filename.size() - 3, 3, "jpg")
-       || 0 == filename.compare(filename.size() - 4, 4, "jpeg"))
+  } else if (0 == filename.compare(filename.size() - 3, 3, "jpg")
+       || 0 == filename.compare(filename.size() - 4, 4, "jpeg")) {
     return WriteJPEG(fn, roi, flip_y);
-  else if (0 == filename.compare(filename.size() - 3, 3, "png"))
+  } else if (0 == filename.compare(filename.size() - 3, 3, "png")) {
     return WritePNG(fn, roi, flip_y);
-  else if (0 == filename.compare(filename.size() - 3, 3, "pfm"))
+  } else if (0 == filename.compare(filename.size() - 3, 3, "pfm")) {
     return WritePFM(fn, roi, flip_y);
-  else if (0 == filename.compare(filename.size() - 3, 3, "ppm"))
+  } else if (0 == filename.compare(filename.size() - 3, 3, "ppm")) {
     return WritePPM(fn, roi, flip_y);
-  else
+  } else if (0 == filename.compare(filename.size() - 4, 4, "bson")) {
+    return WriteBSON(fn, roi, flip_y);
+  } else {
     return false;
+  }
 }
 
 } //end namespace
