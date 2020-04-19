@@ -1,45 +1,40 @@
-#Project information
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8)
+project(imgpp VERSION 1.1.0 LANGUAGES CXX)
 
-PROJECT(libimgpp)
+find_package(JPEG REQUIRED)
+find_package(PNG REQUIRED)
 
-SET(${PROJECT_NAME}_MAJOR_VERSION 1)
-SET(${PROJECT_NAME}_MINOR_VERSION 0)
-SET(${PROJECT_NAME}_PATCH_LEVEL 0)
+# static library
+add_library(imgpp STATIC)
+target_sources(imgpp PRIVATE
+  src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp
+  src/jpegimg.cpp src/helper.cpp src/bson.cpp)
+target_compile_features(imgpp PUBLIC cxx_std_17)
+set_target_properties(imgpp PROPERTIES PUBLIC_HEADER
+  "include/imgpp.hpp;include/algorithms.hpp;include/loadersext.hpp;include/loaders.hpp;include/opencvbinding.hpp;include/sampler.hpp")
+target_link_libraries(imgpp PUBLIC JPEG::JPEG PNG::PNG)
+target_include_directories(imgpp PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/imgpp>)
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE Release)
+install(TARGETS imgpp EXPORT imgppTargets
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include/imgpp
+  PUBLIC_HEADER DESTINATION include/imgpp)
+install(EXPORT imgppTargets
+  FILE imgppTargets.cmake
+  NAMESPACE imgpp::
+  DESTINATION lib/cmake/imgpp)
 
-IF(WIN32)
-  # these packages should be managed by vcpkg
-ELSE()
-  FIND_PACKAGE(PNG REQUIRED)
-  FIND_PACKAGE(JPEG REQUIRED)
-  INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR})
-ENDIF()
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("imgppConfigVersion.cmake"
+  VERSION ${imgpp_VERSION}
+  COMPATIBILITY SameMajorVersion)
+install(FILES
+  "imgppConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/imgppConfigVersion.cmake"
+  DESTINATION lib/cmake/imgpp)
 
-#build files
-FILE(GLOB HPP_FILES include/*.hpp)
-ADD_LIBRARY(imgpp src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp src/jpegimg.cpp src/helper.cpp src/bson.cpp ${HPP_FILES})
-SET_PROPERTY(TARGET imgpp PROPERTY POSITION_INDEPENDENT_CODE ON)
-IF(NOT WIN32)
-  TARGET_LINK_LIBRARIES(imgpp ${PNG_LIBRARY} ${JPEG_LIBRARY} ${ZLIB_LIBRARY})
-ENDIF()
-
-ADD_EXECUTABLE(testcase src/testcase.cpp)
-TARGET_LINK_LIBRARIES(testcase imgpp)
-
-# find_package(OpenCV REQUIRED)
-# include_directories(${OpenCV_INCLUDE_DIRS})
-# ADD_EXECUTABLE(cvtest src/cvtest.cpp)
-# TARGET_LINK_LIBRARIES(cvtest imgpp ${OpenCV_LIBS})
-
-#install
-INSTALL(FILES ${HPP_FILES} DESTINATION include/imgpp)
-IF(WIN32)
-    INSTALL(TARGETS imgpp ARCHIVE CONFIGURATIONS Debug DESTINATION lib/Debug)
-    INSTALL(TARGETS imgpp ARCHIVE CONFIGURATIONS Release DESTINATION lib/Release)
-ELSE()
-    INSTALL(TARGETS imgpp DESTINATION lib)
-ENDIF()
+# test excutable
+add_executable(testcase src/testcase.cpp)
+target_link_libraries(testcase PRIVATE imgpp)
