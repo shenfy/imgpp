@@ -34,6 +34,7 @@ bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
   } catch (const std::bad_alloc &) {
     fprintf(stderr, "imgpp: Failed to allocate memory for jpeg image!\n");
     jpeg_destroy_decompress(&cinfo);
+    fclose(infile);
     return false;
   }
 
@@ -52,6 +53,7 @@ bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
 
   jpeg_finish_decompress(&cinfo);
   jpeg_destroy_decompress(&cinfo);
+  fclose(infile);
   return true;
 }
 
