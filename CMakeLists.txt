@@ -16,6 +16,7 @@ target_link_libraries(imgpp PUBLIC JPEG::JPEG PNG::PNG)
 target_include_directories(imgpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/imgpp>)
+set_target_properties(imgpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS imgpp EXPORT imgppTargets
   LIBRARY DESTINATION lib
