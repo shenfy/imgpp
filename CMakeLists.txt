@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
 project(imgpp VERSION 1.1.0 LANGUAGES CXX)
 
+set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
 

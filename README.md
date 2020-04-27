@@ -9,7 +9,16 @@ Install dependencies:
 $ sudo apt install libjpeg-turbo8-dev libpng-dev
 ```
 
-Build using CMake:
+Build using conan and cmake
+```bash
+$ mkdir build && cd build
+$ conan install ..
+$ cmake ..
+$ make install
+```
+
+
+Build using CMake (without conan):
 ```bash
 $ mkdir build
 $ cd build
