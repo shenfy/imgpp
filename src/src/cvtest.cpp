@@ -1,7 +1,7 @@
-#include "../include/imgpp.hpp"
-#include "../include/loaders.hpp"
-#include "../include/loadersext.hpp"
-#include "../include/opencvbinding.hpp"
+#include <imgpp/imgpp.hpp>
+#include <imgpp/loaders.hpp>
+#include <imgpp/loadersext.hpp>
+#include <imgpp/opencvbinding.hpp>
 #include <string>
 #include <iostream>
 #include <opencv2/imgproc.hpp>
