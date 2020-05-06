@@ -1,6 +1,6 @@
-#include "../include/imgpp.hpp"
-#include "../include/loaders.hpp"
-#include "../include/loadersext.hpp"
+#include <imgpp/imgpp.hpp>
+#include <imgpp/loaders.hpp>
+#include <imgpp/loadersext.hpp>
 #include <string>
 #include <cstring>
 #include <algorithm>

@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(imgpp VERSION 1.1.0 LANGUAGES CXX)
 
-set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
+  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+endif()
+
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -16,16 +19,15 @@ target_sources(imgpp PRIVATE
   src/jpegimg.cpp src/helper.cpp src/bson.cpp)
 target_compile_features(imgpp PUBLIC cxx_std_17)
 set_target_properties(imgpp PROPERTIES PUBLIC_HEADER
-  "include/imgpp.hpp;include/algorithms.hpp;include/loadersext.hpp;include/loaders.hpp;include/opencvbinding.hpp;include/sampler.hpp")
+  "include/imgpp/imgpp.hpp;include/imgpp/algorithms.hpp;include/imgpp/loadersext.hpp;include/imgpp/loaders.hpp;include/imgpp/opencvbinding.hpp;include/imgpp/sampler.hpp")
 target_link_libraries(imgpp PUBLIC JPEG::JPEG PNG::PNG)
 target_include_directories(imgpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/imgpp>)
+  $<INSTALL_INTERFACE:include>)
 set_target_properties(imgpp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS imgpp EXPORT imgppTargets
   LIBRARY DESTINATION lib
-  INCLUDES DESTINATION include/imgpp
   PUBLIC_HEADER DESTINATION include/imgpp)
 install(EXPORT imgppTargets
   FILE imgppTargets.cmake
@@ -42,5 +44,11 @@ install(FILES
   DESTINATION lib/cmake/imgpp)
 
 # test excutable
-add_executable(testcase src/testcase.cpp)
-target_link_libraries(testcase PRIVATE imgpp)
+enable_testing()
+add_executable(basictest src/testcase.cpp)
+add_custom_command(
+  TARGET basictest
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.png ${CMAKE_CURRENT_BINARY_DIR}/test.png
+  COMMENT "Copy test images to build folder")
+target_link_libraries(basictest PRIVATE imgpp)
+add_test(basic basictest)
