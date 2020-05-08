@@ -3,10 +3,7 @@
 
 /*! \file imgpp.hpp */
 
-#include <memory>
-#include <cstdint>
-#include <cstring>
-
+#include "img.hpp"
 namespace imgpp {
 
   //! ImgROI is a view into a ImgBuffer or a plain C-style buffer.
@@ -19,18 +16,17 @@ namespace imgpp {
 
     //! Default constructor creating an empty region with buffer_ pointing to NULL.
     ImgROI() :
-      data_(0), width_(0), height_(0), channel_(0), depth_(0), bpc_(0),
+      data_(nullptr), width_(0), height_(0), channel_(0), depth_(0), bpc_(0),
       is_signed_(true), is_float_(false), pitch_(0), slice_pitch_(0) {}
 
     //! Constructor for a 2D image with known dimension.
     ImgROI(uint8_t *src, uint32_t w, uint32_t h, uint32_t c,
       uint32_t bpc, uint32_t pitch, bool is_float, bool is_signed) :
-      data_(src), width_(w), height_(h), channel_(c), depth_(1), bpc_(bpc),
-      is_signed_(is_signed), is_float_(is_float), pitch_(pitch), slice_pitch_(pitch * h) {}
+      ImgROI(src, w, h, 1, c, bpc, pitch, pitch * h, is_float, is_signed) {}
 
     //! Constructor for a 3D image with known dimension.
     ImgROI(uint8_t *src, uint32_t w, uint32_t h, uint32_t depth, uint32_t c,
-      uint32_t bpc, uint32_t pitch, uint32_t slice_pitch, bool is_float, bool is_signed) :
+      uint32_t bpc, uint32_t pitch,  uint32_t slice_pitch, bool is_float, bool is_signed) :
       data_(src), width_(w), height_(h), channel_(c), depth_(depth), bpc_(bpc),
       is_signed_(is_signed), is_float_(is_float), pitch_(pitch), slice_pitch_(slice_pitch) {}
 
@@ -226,7 +222,11 @@ namespace imgpp {
 
     //meta data
     union {
-      struct{ uint32_t width_, height_, channel_, depth_; };
+      struct{
+        uint32_t width_;
+        uint32_t height_;
+        uint32_t channel_;
+        uint32_t depth_; };
       uint32_t dimensions_[4];
     };
 
@@ -235,75 +235,6 @@ namespace imgpp {
     bool is_float_; //!<Flag for float types.
     uint32_t pitch_; //!<Distance in bytes between consecutive lines
     uint32_t slice_pitch_; //!<Distance in bytes between consecutive slices
-  };
-
-  //! \brief ImgBuffer holds actual pixel data
-
-  //! ImgBuffer uses a smart pointer with reference counting to hold pixel data buffers.
-  //! The class destroys the smart pointer during destruction, hence reducing the reference count to the buffer by 1.
-  class ImgBuffer {
-  public:
-    ImgBuffer() : length_(0) {}
-
-    ImgBuffer(uint32_t length) {
-      SetSize(length);
-    }
-
-    //! Allocates memory of the given length, and binds it to data_.
-    //! If data_ is already bound to a buffer, its reference count is reduced by 1.
-    //! \return true if succeeded, false if failed.
-    void SetSize(uint32_t length) {
-      if (length_ == length && data_.get()) {
-        return;
-      }
-
-      uint8_t *data = new uint8_t[length];  // throws std::bad_alloc in case of failure
-      data_.reset(data, [](uint8_t *p) { delete []p; });
-      length_ = length;
-    }
-
-    uint32_t GetLength() const { return length_; }
-
-    //! Get the C-style raw pointer to the buffer. Doesn't affect the reference count.
-    uint8_t *GetBuffer() { return data_.get(); }
-    const uint8_t *GetBuffer() const { return data_.get(); }
-
-    //! Get a temporary shared copy of the buffer. Reference count += 1.
-    std::shared_ptr<uint8_t> GetSharedBuffer() { return data_; }
-
-    bool WriteData(const uint8_t* buffer, uint32_t length) {
-      if (length != length_) {
-        return false;
-      } else {
-        memcpy(data_.get(), buffer, length_ * sizeof(uint8_t));
-        return true;
-      }
-    }
-
-    //! Set all pixel value to zero
-    void Zeros() {
-      memset(data_.get(), 0, length_ * sizeof(uint8_t));
-    }
-
-    //! Copy data from another ImgBuffer of the same size
-    void CopyFrom(const ImgBuffer &src) {
-      if (length_ != src.length_) {
-        SetSize(src.length_);
-      }
-
-      memcpy(data_.get(), src.data_.get(), src.length_ * sizeof(uint8_t));
-    }
-
-    //! Create a deep copy of this ImgBuffer
-    ImgBuffer Clone() {
-      ImgBuffer result;
-      result.CopyFrom(*this);
-      return result;
-    }
-
-  protected:
-    std::shared_ptr<uint8_t> data_;
-    uint32_t length_;
   };
 
   /*! \fn bool CopyData(ImgROI &dst, const ImgROI &src)
@@ -330,9 +261,10 @@ namespace imgpp {
   }
 
   //! Img holds a 2D or 3D image using an ImgBuffer and an ImgROI.
-  class Img {
+  class Img: public ImgBase<ImgROI> {
   public:
     Img() {}
+    ~Img() {}
     Img(uint32_t w, uint32_t h, uint32_t depth, uint32_t c, uint32_t bpc,
       bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1) {
       SetSize(w, h, depth, c, bpc, is_float, is_signed, align_bytes);
@@ -342,15 +274,16 @@ namespace imgpp {
       bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1)
       : Img(w, h, 1, c, bpc, is_float, is_signed, align_bytes) {}
 
-    ~Img() {}
-
     //! Allocates memory and creates an ROI for the entire image.
     void SetSize(uint32_t w, uint32_t h, uint32_t depth,
       uint32_t c, uint32_t bpc,
       bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1) {
+      if (w == 0 || h == 0 || depth == 0 || c == 0 || bpc == 0) {
+        return;
+      }
       uint32_t pitch = ImgROI::CalcPitch(w, c, bpc, align_bytes);
       uint32_t slice_pitch = pitch * h;
-      buffer_.SetSize(slice_pitch * depth);  // may throw
+      buffer_.SetSize(slice_pitch * depth);
       entire_img_ = ImgROI(buffer_.GetBuffer(), w, h,
         depth, c, bpc, pitch, slice_pitch, is_float, is_signed);
     }
@@ -358,13 +291,8 @@ namespace imgpp {
     //! Allocates memory and creates an ROI for the entire image,
     //! based on the size of a source ROI, ignoring the source's pitch and alignment
     void SetSizeLike(const ImgROI &src_roi, uint8_t align_bytes = 1) {
-      uint32_t pitch = ImgROI::CalcPitch(
-        src_roi.width_, src_roi.channel_, src_roi.bpc_, align_bytes);
-      uint32_t slice_pitch = pitch * src_roi.height_;
-      buffer_.SetSize(slice_pitch * src_roi.depth_);  // may throw
-      entire_img_ = ImgROI(buffer_.GetBuffer(), src_roi.width_, src_roi.height_,
-        src_roi.depth_, src_roi.channel_, src_roi.bpc_, pitch, slice_pitch,
-        src_roi.is_float_, src_roi.is_signed_);
+      SetSize(src_roi.width_, src_roi.height_, src_roi.depth_, src_roi.channel_, src_roi.bpc_,
+        src_roi.is_float_, src_roi.is_signed_, align_bytes);
     }
 
     //! Change the shape of the image without modifying the pixel data.
@@ -393,49 +321,11 @@ namespace imgpp {
       return true;
     }
 
-    //! Deep copy from another image
-    void CopyFrom(const Img& src) {
-      buffer_.CopyFrom(src.buffer_);
-      entire_img_ = src.entire_img_;
-      entire_img_.data_ = buffer_.GetBuffer();
-    }
-
     //! Deep copy from an ROI, ignoring the original pitch and alignment
-    void CopyFrom(const ImgROI &src_roi, uint8_t align_bytes = 1) {
-      uint32_t pitch = ImgROI::CalcPitch(
-        src_roi.width_, src_roi.channel_, src_roi.bpc_, align_bytes);
-      uint32_t slice_pitch = pitch * src_roi.height_;
-      buffer_.SetSize(slice_pitch * src_roi.depth_);
-      entire_img_ = ImgROI(buffer_.GetBuffer(), src_roi.width_, src_roi.height_,
-        src_roi.depth_, src_roi.channel_, src_roi.bpc_, pitch, slice_pitch,
-        src_roi.is_float_, src_roi.is_signed_);
-
-      CopyData(entire_img_, src_roi);
+    bool CopyFrom(const ImgROI &src_roi, uint8_t align_bytes = 1) {
+      SetSizeLike(src_roi, align_bytes);
+      return CopyData(entire_img_, src_roi);
     }
-
-    //! Create a deep copy of the current Img
-    Img Clone() {
-      Img result;
-      result.CopyFrom(*this);
-      return result;
-    }
-
-    //! Set all pixel value to zero
-    void Zeros() {
-      buffer_.Zeros();
-    }
-
-    //! Returns an ROI that covers the entire image.
-    ImgROI &ROI(void) { return entire_img_; }
-    const ImgROI &ROI(void) const { return entire_img_; }
-
-    //! Returns the member ImgBuffer object. Don't mess with this unless you know what you are doing!
-    ImgBuffer &Data() { return buffer_; }
-    const ImgBuffer &Data() const { return buffer_; }
-
-    protected:
-    ImgBuffer buffer_; //image buffer
-    ImgROI entire_img_; //ROI covering entire image
   };
 
   inline Img Zeros(uint32_t w, uint32_t h, uint32_t depth, uint32_t c, uint32_t bpc,
@@ -451,7 +341,6 @@ namespace imgpp {
     result.Zeros();
     return result;
   }
-
 
   /*! \fn bool Add2DBorder(Img &dst, const ImgROI &src, uint32_t border_size, uint8_t align_byte = 1)
       \brief Create a new image with a border of size "border_size" to each layer around the source ROI.

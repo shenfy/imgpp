@@ -1,0 +1,54 @@
+#ifndef IMGPP_BCDESC_HPP
+#define IMGPP_BCDESC_HPP
+
+#include <cstdint>
+namespace imgpp {
+enum BCFormat: uint8_t {
+  Unknown = 0,
+  RGBA_ASTC_4x4,
+  RGBA_ASTC_5x4,
+  RGBA_ASTC_5x5,
+  RGBA_ASTC_6x5,
+  RGBA_ASTC_6x6,
+  RGBA_ASTC_8x5,
+  RGBA_ASTC_8x6,
+  RGBA_ASTC_8x8,
+  RGBA_ASTC_10x5,
+  RGBA_ASTC_10x6,
+  RGBA_ASTC_10x8,
+  RGBA_ASTC_10x10,
+  RGBA_ASTC_12x10,
+  RGBA_ASTC_12x12,
+  SRGB8_ALPHA8_ASTC_4x4,
+  SRGB8_ALPHA8_ASTC_5x4,
+  SRGB8_ALPHA8_ASTC_5x5,
+  SRGB8_ALPHA8_ASTC_6x5,
+  SRGB8_ALPHA8_ASTC_6x6,
+  SRGB8_ALPHA8_ASTC_8x5,
+  SRGB8_ALPHA8_ASTC_8x6,
+  SRGB8_ALPHA8_ASTC_8x8,
+
+  SRGB8_ALPHA8_ASTC_10x5,
+  SRGB8_ALPHA8_ASTC_10x6,
+  SRGB8_ALPHA8_ASTC_10x8,
+  SRGB8_ALPHA8_ASTC_10x10,
+  SRGB8_ALPHA8_ASTC_12x10,
+  SRGB8_ALPHA8_ASTC_12x12,
+
+  RGB_BPTC_SIGNED_FLOAT,
+  RGB_BPTC_UNSIGNED_FLOAT_ARB,
+  RGBA_BPTC_UNORM,
+  SRGB_ALPHA_BPTC_UNORM_ARB
+};
+
+// Block based compression texture info
+struct BCDesc {
+  BCFormat format;
+  uint32_t block_width;
+  uint32_t block_height;
+  uint32_t block_bytes;
+};
+
+const BCDesc &GetBCDesc(BCFormat format);
+}
+#endif // IMGPP_BCDESC_HPP
