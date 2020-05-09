@@ -114,17 +114,13 @@ public:
   }
 
   static const uint32_t CalcBlockPitch(
-    BCFormat format, uint32_t w, uint8_t align_bytes = 1) {
+    BCFormat format, uint32_t w) {
     auto &bc_desc = GetBCDesc(format);
-    if (format == Unknown || w % bc_desc.block_width != 0) {
+    if (format == UNKNOWN || w % bc_desc.block_width != 0) {
       return 0;
     }
     uint32_t horizontal_block_num = w / bc_desc.block_width;
-    if (align_bytes) {
-      return (((horizontal_block_num * bc_desc.block_bytes) >> 3) + (align_bytes - 1)) / align_bytes * align_bytes;
-    } else {
-      return (horizontal_block_num * bc_desc.block_bytes) >> 3;
-    }
+    return (horizontal_block_num * bc_desc.block_bytes) >> 3;
   }
 
   static const uint32_t CalcHorizontalBlockNum(BCFormat format, uint32_t w) {
@@ -140,7 +136,7 @@ public:
 
 private:
   void Validate() {
-    if (bc_desc_.format == Unknown || width_ % bc_desc_.block_width != 0 ||
+    if (bc_desc_.format == UNKNOWN || width_ % bc_desc_.block_width != 0 ||
       height_ % bc_desc_.block_height != 0) {
       Reset();
     }
@@ -189,11 +185,11 @@ public:
   BCImg() {}
   ~BCImg() {}
 
-  BCImg(BCFormat format, uint32_t w, uint32_t h, uint32_t depth = 1, uint8_t align_bytes = 1) {
-    SetSize(format, w, h, depth, align_bytes);
+  BCImg(BCFormat format, uint32_t w, uint32_t h, uint32_t depth = 1) {
+    SetSize(format, w, h, depth);
   }
 
-  void SetSize(BCFormat format, uint32_t w, uint32_t h, uint32_t depth, uint32_t align_bytes = 1) {
+  void SetSize(BCFormat format, uint32_t w, uint32_t h, uint32_t depth) {
     entire_img_ = BCImgROI(nullptr, format, w, h, depth);
     if (entire_img_.width_ == 0) {
       return;
@@ -202,12 +198,12 @@ public:
     entire_img_.data_ = buffer_.GetBuffer();
   }
 
-  void SetSizeLike(const BCImgROI &src_roi, uint8_t align_bytes = 1) {
-    SetSize(src_roi.bc_desc_.format, src_roi.width_, src_roi.height_, src_roi.depth_, align_bytes);
+  void SetSizeLike(const BCImgROI &src_roi) {
+    SetSize(src_roi.bc_desc_.format, src_roi.width_, src_roi.height_, src_roi.depth_);
   }
 
-  bool CopyFrom(const BCImgROI &src_roi, uint8_t align_bytes = 1) {
-    SetSizeLike(src_roi, align_bytes);
+  bool CopyFrom(const BCImgROI &src_roi) {
+    SetSizeLike(src_roi);
     return CopyData(entire_img_, src_roi);
   }
 };

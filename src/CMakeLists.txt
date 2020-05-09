@@ -27,7 +27,7 @@ set(IMGPP_HEADER
 add_library(imgpp STATIC)
 target_sources(imgpp PRIVATE
   src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp
-  src/jpegimg.cpp src/helper.cpp src/bson.cpp src/bchelper.cpp src/bcdesc.cpp)
+  src/jpegimg.cpp src/helper.cpp src/bson.cpp)
 target_compile_features(imgpp PUBLIC cxx_std_17)
 set_target_properties(imgpp PROPERTIES PUBLIC_HEADER
   "${IMGPP_HEADER}")
