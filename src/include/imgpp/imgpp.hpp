@@ -3,7 +3,7 @@
 
 /*! \file imgpp.hpp */
 
-#include "img.hpp"
+#include <imgpp/img.hpp>
 namespace imgpp {
 
   //! ImgROI is a view into a ImgBuffer or a plain C-style buffer.

@@ -14,7 +14,7 @@ find_package(PNG REQUIRED)
 
 set(IMGPP_HEADER
   include/imgpp/imgpp.hpp
-  include/imgpp/bcimgpp.hpp
+  include/imgpp/bcimg.hpp
   include/imgpp/bcdesc.hpp
   include/imgpp/bchelper.hpp
   include/imgpp/img.hpp
