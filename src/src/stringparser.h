@@ -1,6 +1,8 @@
 #ifndef IMGPP_STRINGPARSER_H
 #define IMGPP_STRINGPARSER_H
 
+#include <cctype>
+
 namespace imgpp { namespace parser {
 
 inline std::string GetFixedSizeToken(std::istream &is, size_t length) {
