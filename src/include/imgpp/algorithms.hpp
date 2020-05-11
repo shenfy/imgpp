@@ -2,6 +2,7 @@
 #define IMGPP_ALGORITHMS_HPP
 
 #include <type_traits>
+#include <array>
 #include "imgpp.hpp"
 
 namespace imgpp {
