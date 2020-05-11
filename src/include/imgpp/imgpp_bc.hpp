@@ -1,12 +1,14 @@
 #ifndef IMGPP_BCIMG_HPP
 #define IMGPP_BCIMG_HPP
 
-#include <imgpp/img.hpp>
+/*! \file imgpp.hpp */
+
+#include <imgpp/imgbase.hpp>
 #include <imgpp/bcdesc.hpp>
 
 namespace imgpp {
 
-//! \Block based compression img, etc. ASTC, BC3, BC7, ETC1, ETC2
+//! Wrapper for block-compressed images (e.g. ASTC, BC7, ETC2)
 class BCImgROI {
 public:
   friend class BCImg;

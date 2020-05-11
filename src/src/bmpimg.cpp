@@ -1,5 +1,6 @@
 #include <imgpp/loaders.hpp>
 #include <fstream>
+#include <memory>
 #include <imgpp/imgpp.hpp>
 
 namespace {
@@ -94,9 +95,8 @@ bool LoadBMP(const char *fn, Img &img, bool flip_y) {
   img.SetSize(width, height, 1, bpp >> 3, 8, false, false);
 
   if (bpp == 8) {  // read and skip color table
-    uint8_t *color_table = new uint8_t[sizeof(uint32_t) * 256];
-    infile.read((char *)color_table, sizeof(uint32_t) * 256);
-    delete []color_table;
+    auto color_table = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof(uint32_t) * 256]);
+    infile.read((char *)color_table.get(), sizeof(uint32_t) * 256);
   }
 
   // jump to pixel data
@@ -154,9 +154,8 @@ bool LoadBMP(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   img.SetSize(width, height, 1, bpp >> 3, 8, false, false);
 
   if (bpp == 8) {  // read and skip color table
-    uint8_t *color_table = new uint8_t[sizeof(uint32_t) * 256];
-    memcpy((char *)color_table, p, sizeof(uint32_t) * 256);
-    delete []color_table;
+    auto color_table = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof(uint32_t) * 256]);
+    memcpy((char *)color_table.get(), p, sizeof(uint32_t) * 256);
   }
 
   p = buffer + bfh.bfOffBits;

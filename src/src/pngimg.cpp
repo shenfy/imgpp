@@ -26,8 +26,8 @@ namespace imgpp {
     if (!fp) {
       return PNGAbort("imgpp: file could not be opened for reading!");
     }
-    fread(header, 1, 8, fp);
-    if (png_sig_cmp((unsigned char*)header, 0, 8)) {
+    auto count = fread(header, 1, 8, fp);
+    if (count < 8 || png_sig_cmp((unsigned char*)header, 0, 8)) {
       fclose(fp);
       return PNGAbort("imgpp: file is not recognized as a PNG file!");
     }

@@ -27,8 +27,7 @@ public:
       return;
     }
 
-    uint8_t *data = new uint8_t[length];  // throws std::bad_alloc in case of failure
-    data_.reset(data, [](uint8_t *p) { delete []p; });
+    data_.reset(new uint8_t[length], std::default_delete<uint8_t[]>());
     length_ = length;
   }
 

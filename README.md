@@ -51,3 +51,15 @@ $ cmake ../src
 $ make -j4
 $ make install
 ```
+
+## Usage
+Include imgpp/imgpp.hpp if you need a wrapper for uncompressed regular images:
+```c++
+#include <imgpp/imgpp.hpp>
+```
+and imgpp/imgpp_bc.hpp for block-compressed images:
+```c++
+#include <imgpp/imgpp_bc.hpp>
+```
+
+WARNING: 3D compressed image (e.g. 4x4x4 blocks) are not supported yet!
