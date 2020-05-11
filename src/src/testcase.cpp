@@ -1,4 +1,5 @@
 #include <imgpp/imgpp.hpp>
+#include <imgpp/bcimg.hpp>
 #include <imgpp/loaders.hpp>
 #include <imgpp/loadersext.hpp>
 #include <string>

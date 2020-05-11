@@ -14,7 +14,7 @@ public:
   BCImgROI() {}
 
   BCImgROI(uint8_t *src, BCFormat format, uint32_t w, uint32_t h, uint32_t depth) {
-    if (format != UNKNOWN_BC && w != 0 && h != 0 && depth_ != 0) {
+    if (format != UNKNOWN_BC && w != 0 && h != 0 && depth != 0) {
       data_ = src;
       format_ = format;
       width_ = w;
@@ -37,9 +37,9 @@ public:
     uint32_t bottom, uint32_t back) {
 
     if (right > left && bottom > top && back > front && src.format_ != UNKNOWN_BC) {
-      desc = GetBCDesc(src.format_);
+      auto &desc = GetBCDesc(src.format_);
       // 2D blocks only!!!
-      data_ = src.BlockAt(left / desc.block_width, right / desc.block_height, front);
+      data_ = (uint8_t*)(src.BlockAt(left / desc.block_width, right / desc.block_height, front));
       format_ = src.format_;
       width_ = right - left + 1;
       height_ = bottom - top + 1;
