@@ -14,14 +14,14 @@ $ conan remote add bintray-shenfy https://api.bintray.com/conan/shenfy/oss
 And ask for the latest imgpp in your project's conanfile.txt:
 ```
 [requires]
-imgpp/1.2.0@shenfy/testing
+imgpp/2.0.0@shenfy/testing
 ```
 or conanfile.py:
 ```python
-requires = "imgpp/1.2.0@shenfy/testing"
+requires = "imgpp/2.0.0@shenfy/testing"
 ```
 
-You can replace the version number and channel to point to the latest stable/testing releases.
+Please modify the string to request a specific version/channel of the library.
 
 ### Build from Source w/ Conan
 Clone the repository, then install dependencies with conan:
@@ -42,12 +42,24 @@ $ make install
 ```
 
 ### Build from Source w/o Conan
-This is highly discouraged, but should work for now:
+This is strongly discouraged, but if you really want to, try something like this:
 ```bash
 $ sudo apt install libjpeg-turbo8-dev libpng-dev
 $ mkdir build
 $ cd build
-$ cmake ../src -DCMAKE_BUILD_TYPE=Release
+$ cmake ../src
 $ make -j4
 $ make install
 ```
+
+## Usage
+Include imgpp/imgpp.hpp if you need a wrapper for uncompressed regular images:
+```c++
+#include <imgpp/imgpp.hpp>
+```
+and imgpp/imgpp_bc.hpp for block-compressed images:
+```c++
+#include <imgpp/imgpp_bc.hpp>
+```
+
+WARNING: 3D compressed image (e.g. 4x4x4 blocks) are not supported yet!
