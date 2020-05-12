@@ -23,8 +23,8 @@ public:
       height_ = h;
       depth_ = depth;
       auto &desc = GetBCDesc(format);
-      horizontal_block_num_ = width_ / desc.block_width;
-      vertical_block_num_ = height_ / desc.block_height;
+      horizontal_block_num_ = (width_ + desc.block_width - 1) / desc.block_width;
+      vertical_block_num_ = (height_ + desc.block_height - 1) / desc.block_height;
       pitch_ = horizontal_block_num_ * desc.block_bytes;
       slice_pitch_ = pitch_ * vertical_block_num_;
     }
@@ -34,20 +34,19 @@ public:
     BCImgROI(src, format, w, h, 1) {}
 
   BCImgROI(const BCImgROI &src,
-    uint32_t left, uint32_t top,
-    uint32_t front, uint32_t right,
-    uint32_t bottom, uint32_t back) {
+    uint32_t left, uint32_t top, uint32_t front,
+    uint32_t right, uint32_t bottom, uint32_t back) {
 
     if (right > left && bottom > top && back > front && src.format_ != UNKNOWN_BC) {
       auto &desc = GetBCDesc(src.format_);
       // 2D blocks only!!!
-      data_ = (uint8_t*)(src.BlockAt(left / desc.block_width, right / desc.block_height, front));
+      data_ = (uint8_t*)(src.BlockAt(left / desc.block_width, top / desc.block_height, front));
       format_ = src.format_;
       width_ = right - left + 1;
       height_ = bottom - top + 1;
       depth_ = back - front + 1;
-      horizontal_block_num_ = width_ / desc.block_width;
-      vertical_block_num_ = height_ / desc.block_height;
+      horizontal_block_num_ = (width_ + desc.block_width - 1) / desc.block_width;
+      vertical_block_num_ = (height_ + desc.block_height - 1) / desc.block_height;
       pitch_ = src.pitch_;
       slice_pitch_ = src.slice_pitch_;
     }
@@ -138,21 +137,11 @@ public:
 
   static const uint32_t CalcPitch(BCFormat format, uint32_t w) {
     auto &desc = GetBCDesc(format);
-    if (format == UNKNOWN_BC || w % desc.block_width != 0) {
+    if (format == UNKNOWN_BC) {
       return 0;
     }
-    uint32_t horizontal_block_num = w / desc.block_width;
+    auto horizontal_block_num = (w + desc.block_width - 1) / desc.block_width;
     return horizontal_block_num * desc.block_bytes;
-  }
-
-  static const uint32_t CalcHorizontalBlockNum(BCFormat format, uint32_t w) {
-    auto &desc = GetBCDesc(format);
-    return w / desc.block_width;
-  }
-
-  static const uint32_t CalcVerticalBlockNum(BCFormat format, uint32_t h) {
-    auto &desc = GetBCDesc(format);
-    return h / desc.block_height;
   }
 
 
@@ -181,10 +170,10 @@ inline bool CopyData(BCImgROI &dst, const BCImgROI &src) {
     return false;
   }
 
-  uint32_t src_length = BCImgROI::CalcPitch(src.Format(), src.Width());
+  uint32_t src_pitch = BCImgROI::CalcPitch(src.Format(), src.Width());
   for (uint32_t z = 0; z < src.Depth(); ++z) {
     for (uint32_t y = 0; y < src.VerticalBlockNum(); ++y) {
-      memcpy(dst.BlockAt(0, y, z), src.BlockAt(0, y, z), src_length);
+      memcpy(dst.BlockAt(0, y, z), src.BlockAt(0, y, z), src_pitch);
     }
   }
   return true;
