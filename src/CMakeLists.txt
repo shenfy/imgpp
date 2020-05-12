@@ -13,16 +13,17 @@ find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
 
 set(IMGPP_HEADER
-  include/imgpp/imgpp.hpp
-  include/imgpp/imgpp_bc.hpp
+  include/imgpp/algorithms.hpp
   include/imgpp/bcdesc.hpp
   include/imgpp/bchelper.hpp
-  include/imgpp/img.hpp
-  include/imgpp/algorithms.hpp
+  include/imgpp/imgbase.hpp
+  include/imgpp/imgpp_bc.hpp
+  include/imgpp/imgpp.hpp
   include/imgpp/loadersext.hpp
   include/imgpp/loaders.hpp
   include/imgpp/opencvbinding.hpp
   include/imgpp/sampler.hpp)
+
 # static library
 add_library(imgpp STATIC)
 target_sources(imgpp PRIVATE
