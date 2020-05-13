@@ -37,7 +37,7 @@ public:
     uint32_t left, uint32_t top, uint32_t front,
     uint32_t right, uint32_t bottom, uint32_t back) {
 
-    if (right > left && bottom > top && back > front && src.format_ != UNKNOWN_BC) {
+    if (right >= left && bottom >= top && back >= front && src.format_ != UNKNOWN_BC) {
       auto &desc = GetBCDesc(src.format_);
       // 2D blocks only!!!
       data_ = (uint8_t*)(src.BlockAt(left / desc.block_width, top / desc.block_height, front));
