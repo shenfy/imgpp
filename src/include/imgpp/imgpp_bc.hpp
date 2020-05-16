@@ -15,18 +15,21 @@ public:
 
   BCImgROI() {}
 
+  BCImgROI(uint8_t *src, BCFormat format,
+    uint32_t w, uint32_t h, uint32_t depth, uint32_t pitch, uint32_t slice_pitch) {
+    if (format != UNKNOWN_BC && w != 0 && h != 0 && depth != 0) {
+      Init(src, format, w, h, depth, pitch, slice_pitch);
+    }
+  }
+
   BCImgROI(uint8_t *src, BCFormat format, uint32_t w, uint32_t h, uint32_t depth) {
     if (format != UNKNOWN_BC && w != 0 && h != 0 && depth != 0) {
-      data_ = src;
-      format_ = format;
-      width_ = w;
-      height_ = h;
-      depth_ = depth;
       auto &desc = GetBCDesc(format);
-      horizontal_block_num_ = (width_ + desc.block_width - 1) / desc.block_width;
-      vertical_block_num_ = (height_ + desc.block_height - 1) / desc.block_height;
-      pitch_ = horizontal_block_num_ * desc.block_bytes;
-      slice_pitch_ = pitch_ * vertical_block_num_;
+      uint32_t horizontal_block_num = (w + desc.block_width - 1) / desc.block_width;
+      uint32_t vertical_block_num = (h + desc.block_height - 1) / desc.block_height;
+      uint32_t pitch = horizontal_block_num * desc.block_bytes;
+      uint32_t slice_pitch = pitch * vertical_block_num;
+      Init(src, format, w, h, depth, pitch, slice_pitch);
     }
   }
 
@@ -36,19 +39,12 @@ public:
   BCImgROI(const BCImgROI &src,
     uint32_t left, uint32_t top, uint32_t front,
     uint32_t right, uint32_t bottom, uint32_t back) {
-
-    if (right > left && bottom > top && back > front && src.format_ != UNKNOWN_BC) {
+    if (right < src.width_ && bottom < src.height_ && back < src.depth_
+      && right >= left && bottom >= top && back >= front && src.format_ != UNKNOWN_BC) {
       auto &desc = GetBCDesc(src.format_);
       // 2D blocks only!!!
-      data_ = (uint8_t*)(src.BlockAt(left / desc.block_width, top / desc.block_height, front));
-      format_ = src.format_;
-      width_ = right - left + 1;
-      height_ = bottom - top + 1;
-      depth_ = back - front + 1;
-      horizontal_block_num_ = (width_ + desc.block_width - 1) / desc.block_width;
-      vertical_block_num_ = (height_ + desc.block_height - 1) / desc.block_height;
-      pitch_ = src.pitch_;
-      slice_pitch_ = src.slice_pitch_;
+      Init((uint8_t*)(src.BlockAt(left / desc.block_width, top / desc.block_height, front)),
+        src.format_, right - left + 1, bottom - top + 1, back - front + 1, src.pitch_, src.slice_pitch_);
     }
   }
 
@@ -146,6 +142,21 @@ public:
 
 
 private:
+  void Init(uint8_t *src, BCFormat format,
+    uint32_t w, uint32_t h, uint32_t depth,
+    uint32_t pitch, uint32_t slice_pitch) {
+    data_ = src;
+    format_ = format;
+    width_ = w;
+    height_ = h;
+    depth_ = depth;
+    pitch_ = pitch;
+    slice_pitch_ = slice_pitch;
+    auto &desc = GetBCDesc(format);
+    horizontal_block_num_ = (width_ + desc.block_width - 1) / desc.block_width;
+    vertical_block_num_ = (height_ + desc.block_height - 1) / desc.block_height;
+  }
+
   uint8_t *data_{nullptr}; //!<Data pointer. NOT a smart pointer hence NOT responsible the buffer!
   BCFormat format_{UNKNOWN_BC};
 
