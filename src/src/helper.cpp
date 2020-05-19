@@ -33,7 +33,8 @@ bool IsPNGFormat(const char *buffer) {
 
 bool IsJPEGFormat(const char *buffer) {
   auto ub = reinterpret_cast<const uint8_t *>(buffer);
-  if (ub[0] == 0xFF && ub[1] == 0xD8 && ub[2] == 0xFF && ub[3] == 0xE0) {
+  if (ub[0] == 0xFF && ub[1] == 0xD8 && ub[2] == 0xFF &&
+    (ub[3] == 0xE0 || ub[3] == 0xE1 || ub[3] == 0xEE || ub[3] == 0xDB)) {
     return true;
   }
   return false;
