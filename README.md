@@ -14,11 +14,11 @@ $ conan remote add bintray-shenfy https://api.bintray.com/conan/shenfy/oss
 And ask for the latest imgpp in your project's conanfile.txt:
 ```
 [requires]
-imgpp/2.0.0@shenfy/testing
+imgpp/2.0.1@shenfy/testing
 ```
 or conanfile.py:
 ```python
-requires = "imgpp/2.0.0@shenfy/testing"
+requires = "imgpp/2.0.1@shenfy/testing"
 ```
 
 Please modify the string to request a specific version/channel of the library.
@@ -39,6 +39,13 @@ or build it with cmake and install to your system library folder (default to /us
 $ cmake ../src
 $ make -j4
 $ make install
+```
+
+### Create Header-Only Package
+Clone the repository, and cd into the header_pkg directory:
+```bash
+$ cd header_pkg
+$ conan create . (user)/(channel)
 ```
 
 ### Build from Source w/o Conan
