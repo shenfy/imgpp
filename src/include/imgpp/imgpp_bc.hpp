@@ -162,13 +162,13 @@ private:
 
   union {
     struct {
-      uint32_t width_{0};
-      uint32_t height_{0};
-      uint32_t depth_{0};
-      uint32_t horizontal_block_num_{0};
-      uint32_t vertical_block_num_{0};
+      uint32_t width_;
+      uint32_t height_;
+      uint32_t depth_;
+      uint32_t horizontal_block_num_;
+      uint32_t vertical_block_num_;
     };
-    uint32_t dimensions_[5];
+    uint32_t dimensions_[5] = {0, 0, 0, 0, 0};
   };
 
   uint32_t pitch_{0};
