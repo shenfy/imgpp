@@ -22,6 +22,7 @@ namespace imgpp {
   bool LoadJPEG(const char *fn, Img &img, bool flip_y = false);
   bool LoadJPEG(const void *src, uint32_t length, Img &img, bool flip_y = false);
   bool WriteJPEG(const char *fn, const ImgROI &roi, bool flip_y = false);
+  bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool flip_y = false);
   uint32_t CompressJPEG(const ImgROI &roi, void *dst, uint32_t length);
 
 }
