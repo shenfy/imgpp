@@ -1,5 +1,6 @@
 #include <imgpp/loaders.hpp>
 #include <imgpp/imgpp.hpp>
+#include <imgpp/loadersext.hpp>
 #include <jpeglib.h>
 #include <jerror.h>
 #include <cstdio>
@@ -58,8 +59,13 @@ bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
 }
 
 bool WriteJPEG(const char *fn, const ImgROI &roi, bool flip_y) {
-  if (NULL == fn || 0 == strlen(fn))
+  return WriteJPEGAtQuality(fn, roi, 75, flip_y);
+}
+
+bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool flip_y) {
+  if (NULL == fn || 0 == strlen(fn) || quality <= 0 || quality > 100) {
     return false;
+  }
 
   FILE * outfile;
   if ((outfile = fopen(fn, "wb")) == NULL) {
@@ -85,6 +91,7 @@ bool WriteJPEG(const char *fn, const ImgROI &roi, bool flip_y) {
   cinfo.input_components = roi.Channel();
   cinfo.in_color_space = color_space;
   jpeg_set_defaults(&cinfo);
+  jpeg_set_quality(&cinfo, quality, FALSE);
 
   jpeg_start_compress(&cinfo, TRUE);
 
@@ -107,6 +114,7 @@ bool WriteJPEG(const char *fn, const ImgROI &roi, bool flip_y) {
   }
   return true;
 }
+
 
 bool LoadJPEG(const void *src, uint32_t length, Img &img, bool flip_y) {
   if (src == nullptr || length == 0) {
