@@ -1,26 +1,30 @@
 #ifndef IMGPP_IMG_HPP
 #define IMGPP_IMG_HPP
 
+/*! \file imgbase.hpp */
+
 #include <memory>
 #include <cstdint>
 #include <cstring>
 
 namespace imgpp {
 
-//! \brief ImgBuffer holds actual pixel data
+//! \brief ImgBuffer is a wrapper of the buffer holding the actual pixel data.
 
-//! ImgBuffer uses a smart pointer with reference counting to hold pixel data buffers.
+//! ImgBuffer uses std::shared_ptr with reference counting to hold pixel data buffers.
 //! The class destroys the smart pointer during destruction, hence reducing the reference count to the buffer by 1.
 class ImgBuffer {
 public:
   ImgBuffer() : length_(0) {}
 
+  //! \brief constructor setting buffer length
   ImgBuffer(uint32_t length) {
     SetSize(length);
   }
 
-  //! Allocates memory of the given length, and binds it to data_.
+  //! \brief Allocates memory of the given length, and binds it to data_.
   //! If data_ is already bound to a buffer, its reference count is reduced by 1.
+  //! \param length of the buffer.
   //! \return true if succeeded, false if failed.
   void SetSize(uint32_t length) {
     if (length_ == length && data_.get()) {
@@ -31,15 +35,21 @@ public:
     length_ = length;
   }
 
+  //! \brief Get length of the buffer.
   uint32_t GetLength() const { return length_; }
 
-  //! Get the C-style raw pointer to the buffer. Doesn't affect the reference count.
+  //! \brief Get the C-style raw pointer to the buffer. Does not affect the reference count.
   uint8_t *GetBuffer() { return data_.get(); }
+
+  //! \brief Get the C-style raw pointer to the buffer. Does not affect the reference count.
   const uint8_t *GetBuffer() const { return data_.get(); }
 
-  //! Get a temporary shared copy of the buffer. Reference count += 1.
+  //! \brief Get a temporary shared copy of the buffer. Reference count += 1.
   std::shared_ptr<uint8_t> GetSharedBuffer() { return data_; }
 
+  //! \brief Copy data from given buffer to the ImgBuffer object.
+  //! \param buffer data source
+  //! \param length buffer length
   bool WriteData(const uint8_t* buffer, uint32_t length) {
     if (length != length_) {
       return false;
@@ -49,12 +59,12 @@ public:
     }
   }
 
-  //! Set all pixel value to zero
+  //! \brief Set all pixel value to zero
   void Zeros() {
     memset(data_.get(), 0, length_ * sizeof(uint8_t));
   }
 
-  //! Copy data from another ImgBuffer of the same size
+  //! \brief Copy data from another ImgBuffer of the same size
   void CopyFrom(const ImgBuffer &src) {
     if (length_ != src.length_) {
       SetSize(src.length_);
@@ -63,7 +73,7 @@ public:
     memcpy(data_.get(), src.data_.get(), src.length_ * sizeof(uint8_t));
   }
 
-  //! Create a deep copy of this ImgBuffer
+  //! \brief Create a deep copy of this ImgBuffer
   ImgBuffer Clone() {
     ImgBuffer result;
     result.CopyFrom(*this);
@@ -71,37 +81,37 @@ public:
   }
 
 protected:
-  std::shared_ptr<uint8_t> data_;
-  uint32_t length_;
+  std::shared_ptr<uint8_t> data_;  //!< actual memory buffer holding the data
+  uint32_t length_;  //!< buffer length
 };
 
-//! Img holds a 2D or 3D image using an ImgBuffer and an ImgROI.
+//! \brief Img holds a 2D or 3D image using an ImgBuffer and an ImgROI.
 template <typename TROI>
 class ImgBase {
 public:
   ImgBase() {}
   ~ImgBase() {}
 
-  //! Deep copy from another image
+  //! \brief Deep copy from another image
   void CopyFrom(const ImgBase& src) {
     buffer_.CopyFrom(src.buffer_);
     entire_img_ = src.entire_img_;
     entire_img_.data_ = buffer_.GetBuffer();
   }
 
-  //! Create a deep copy of the current Img
+  //! \brief Create a deep copy of the current Img
   ImgBase<TROI> Clone() {
     ImgBase<TROI> result;
     result.CopyFrom(*this);
     return result;
   }
 
-  //! Set all pixel value to zero
+  //! \brief Set all pixel value to zero
   void Zeros() {
     buffer_.Zeros();
   }
 
-  //! Returns an ROI that covers the entire image.
+  //! \brief Returns an ROI that covers the entire image.
   TROI &ROI() {
     return entire_img_;
   }
@@ -109,7 +119,7 @@ public:
     return entire_img_;
   }
 
-  //! Returns the member ImgBuffer object. Don't mess with this unless you know what you are doing!
+  //! \brief Returns the member ImgBuffer object. Don't mess with this unless you know what you are doing!
   ImgBuffer &Data() {
     return buffer_;
   }
@@ -118,8 +128,8 @@ public:
   }
 
 protected:
-  ImgBuffer buffer_; //image buffer
-  TROI entire_img_; //ROI covering entire image
+  ImgBuffer buffer_;  //!< image buffer
+  TROI entire_img_;  //!< ROI covering entire image
 };
 
 }

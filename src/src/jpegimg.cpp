@@ -9,7 +9,7 @@ using namespace std;
 
 namespace imgpp {
 
-bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
+bool LoadJPEG(const char *fn, Img &img, bool bottom_first) {
   if (NULL == fn || 0 == strlen(fn))
     return false;
 
@@ -40,7 +40,7 @@ bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
   }
 
   JSAMPLE *row[1];
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < cinfo.output_height; ++y) {
       row[0] = (JSAMPLE*)img.ROI().PtrAt(0, cinfo.output_height - y - 1, 0);
       jpeg_read_scanlines(&cinfo, row, 1);
@@ -58,11 +58,11 @@ bool LoadJPEG(const char *fn, Img &img, bool flip_y) {
   return true;
 }
 
-bool WriteJPEG(const char *fn, const ImgROI &roi, bool flip_y) {
-  return WriteJPEGAtQuality(fn, roi, 75, flip_y);
+bool WriteJPEG(const char *fn, const ImgROI &roi, bool bottom_first) {
+  return WriteJPEGAtQuality(fn, roi, 75, bottom_first);
 }
 
-bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool flip_y) {
+bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool bottom_first) {
   if (NULL == fn || 0 == strlen(fn) || quality <= 0 || quality > 100) {
     return false;
   }
@@ -96,7 +96,7 @@ bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool fli
   jpeg_start_compress(&cinfo, TRUE);
 
   JSAMPLE *row[1];
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < roi.Height(); ++y) {
       row[0] = (JSAMPLE*)roi.PtrAt(0, roi.Height() - y - 1, 0);
       jpeg_write_scanlines(&cinfo, row, 1);
@@ -116,7 +116,7 @@ bool WriteJPEGAtQuality(const char *fn, const ImgROI &roi, int quality, bool fli
 }
 
 
-bool LoadJPEG(const void *src, uint32_t length, Img &img, bool flip_y) {
+bool LoadJPEG(const void *src, uint32_t length, Img &img, bool bottom_first) {
   if (src == nullptr || length == 0) {
     return false;
   }
@@ -141,7 +141,7 @@ bool LoadJPEG(const void *src, uint32_t length, Img &img, bool flip_y) {
   }
 
   JSAMPLE *row[1];
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < cinfo.output_height; ++y) {
       row[0] = (JSAMPLE*)img.ROI().PtrAt(0, cinfo.output_height - y - 1, 0);
       jpeg_read_scanlines(&cinfo, row, 1);

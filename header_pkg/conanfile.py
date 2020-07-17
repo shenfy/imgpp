@@ -1,10 +1,9 @@
 import os
 from conans import ConanFile, CMake, tools
 
-
 class ImgppHeaderConan(ConanFile):
     name = "imgpp_headers"
-    version = "2.0.1"
+    version = "2.0.2"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"

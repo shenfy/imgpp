@@ -63,7 +63,7 @@ struct BMPFileHeader {
 
 namespace imgpp {
 
-bool LoadBMP(const char *fn, Img &img, bool flip_y) {
+bool LoadBMP(const char *fn, Img &img, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn)) {
     return false;
   }
@@ -80,11 +80,12 @@ bool LoadBMP(const char *fn, Img &img, bool flip_y) {
   infile.read((char *)&bfh, sizeof(BMPFileHeader));
   infile.read((char *)&bih, sizeof(BMPInfoHeader));
 
+  bool input_bottom_first = bih.biHeight > 0;
+
   uint32_t width, bpp;
-  int32_t height, pitch, line_len;
+  int32_t height, line_len;
   width = bih.biWidth;
-  pitch = bih.biHeight;
-  height = abs(pitch);
+  height = abs(bih.biHeight);
   bpp = bih.biBitCount;
   line_len = (width * (bpp >> 3) + 3) >> 2 << 2;
 
@@ -102,25 +103,13 @@ bool LoadBMP(const char *fn, Img &img, bool flip_y) {
   // jump to pixel data
   infile.seekg(bfh.bfOffBits, std::ios::beg);
 
-  if (pitch > 0) {
-    if (flip_y) {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        infile.read((char *)img.ROI().PtrAt(0, y, 0), line_len);
-      }
-    } else {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        infile.read((char *)img.ROI().PtrAt(0, height - y - 1, 0), line_len);
-      }
+  if (input_bottom_first == bottom_first) {
+    for (uint32_t y = 0; y < (uint32_t)height; y++) {
+      infile.read((char *)img.ROI().PtrAt(0, y, 0), line_len);
     }
   } else {
-    if (flip_y) {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        infile.read((char *)img.ROI().PtrAt(0, y, 0), line_len);
-      }
-    } else {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        infile.read((char *)img.ROI().PtrAt(0, height - y - 1, 0), line_len);
-      }
+    for (uint32_t y = 0; y < (uint32_t)height; y++) {
+      infile.read((char *)img.ROI().PtrAt(0, height - y - 1, 0), line_len);
     }
   }
 
@@ -128,7 +117,7 @@ bool LoadBMP(const char *fn, Img &img, bool flip_y) {
   return true;
 }
 
-bool LoadBMP(const char *buffer, uint32_t length, Img &img, bool flip_y) {
+bool LoadBMP(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
   if (nullptr == buffer || 0 == length) {
     return false;
   }
@@ -143,11 +132,12 @@ bool LoadBMP(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   memcpy(&bih, p, sizeof(BMPInfoHeader));
   p += sizeof(BMPInfoHeader);
 
+  bool input_bottom_first = bih.biHeight > 0;
+
   uint32_t width, bpp;
-  int32_t height, pitch, line_len;
+  int32_t height, line_len;
   width = bih.biWidth;
-  pitch = bih.biHeight;
-  height = abs(pitch);
+  height = abs(bih.biHeight);
   bpp = bih.biBitCount;
   line_len = (width * (bpp >> 3) + 3) >> 2 << 2;
 
@@ -159,36 +149,21 @@ bool LoadBMP(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   }
 
   p = buffer + bfh.bfOffBits;
-  if (pitch > 0) {
-    if (flip_y) {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        memcpy((char *)img.ROI().PtrAt(0, y, 0), p, line_len);
-        p += line_len;
-      }
-    } else {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        memcpy((char *)img.ROI().PtrAt(0, height - y - 1, 0), p, line_len);
-        p += line_len;
-      }
+  if (input_bottom_first == bottom_first) {
+    for (uint32_t y = 0; y < (uint32_t)height; y++) {
+      memcpy((char *)img.ROI().PtrAt(0, y, 0), p, line_len);
+      p += line_len;
     }
   } else {
-    if (flip_y) {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        memcpy((char *)img.ROI().PtrAt(0, height - y - 1, 0), p, line_len);
-        p += line_len;
-      }
-    } else {
-      for (uint32_t y = 0; y < (uint32_t)height; y++) {
-        memcpy((char *)img.ROI().PtrAt(0, y, 0), p, line_len);
-        p += line_len;
-      }
+    for (uint32_t y = 0; y < (uint32_t)height; y++) {
+      memcpy((char *)img.ROI().PtrAt(0, height - y - 1, 0), p, line_len);
+      p += line_len;
     }
   }
-
   return true;
 }
 
-bool WriteBMP(const char *fn, const ImgROI &roi, bool flip_y) {
+bool WriteBMP(const char *fn, const ImgROI &roi, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn))
     return false;
 
@@ -227,7 +202,7 @@ bool WriteBMP(const char *fn, const ImgROI &roi, bool flip_y) {
   }
 
   char *p = 0;
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < roi.Height(); y++) {
       p = (char*)roi.PtrAt(0, y, 0);
       outfile.write(p, line_len);

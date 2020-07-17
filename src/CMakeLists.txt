@@ -52,10 +52,10 @@ add_custom_command(
 target_link_libraries(basictest PRIVATE imgpp)
 add_test(basic basictest)
 
-add_executable(ppmtest src/testppm.cpp)
+add_executable(loadertest src/loadertest.cpp)
 add_custom_command(
   TARGET basictest
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/checkboard.ppm ${CMAKE_CURRENT_BINARY_DIR}/
   COMMENT "Copy test ppm image to build folder")
-target_link_libraries(ppmtest PRIVATE imgpp)
-add_test(ppm ppmtest)
+target_link_libraries(loadertest PRIVATE imgpp)
+add_test(loaders loadertest)

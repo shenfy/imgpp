@@ -9,7 +9,7 @@ namespace imgpp {
     return false;
   }
 
-  bool LoadPNG(const char *fn, Img &img, bool flip_y) {
+  bool LoadPNG(const char *fn, Img &img, bool bottom_first) {
     if (nullptr == fn || 0 == strlen(fn)) {
       return false;
     }
@@ -65,6 +65,11 @@ namespace imgpp {
     png_byte filter_method = png_get_filter_type(png_ptr, info_ptr);
     png_byte compression_type = png_get_compression_type(png_ptr, info_ptr);
     png_byte interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    if (interlace_type != 0) {  // not supporting interlacing
+      png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+      fclose(fp);
+      return PNGAbort("imgpp: no support for interlaced PNG!");
+    }
 
     /* read file */
     row_pointers = new png_bytep[height];
@@ -87,7 +92,7 @@ namespace imgpp {
     }
 
     img.SetSize(width, height, 1, num_channel, bit_depth);
-    if (flip_y){
+    if (bottom_first){
       for (int y = 0; y < height; y++) {
         row_pointers[y] = (unsigned char*)img.ROI().PtrAt(0, height - y - 1, 0);
       }
@@ -109,7 +114,7 @@ namespace imgpp {
     return true;
   }
 
-  bool WritePNG(const char *fn, const ImgROI &roi, bool flip_y) {
+  bool WritePNG(const char *fn, const ImgROI &roi, bool bottom_first) {
     if (nullptr == fn || 0 == strlen(fn))
       return false;
 
@@ -176,7 +181,7 @@ namespace imgpp {
 
     png_bytep * row_pointers = new png_bytep[roi.Height()];
 
-    if (flip_y) {
+    if (bottom_first) {
       for (uint32_t y = 0; y < roi.Height(); ++y) {
         row_pointers[y] = (unsigned char *)roi.PtrAt(0, roi.Height() - y - 1, 0);
       }
@@ -324,7 +329,7 @@ namespace imgpp {
     return (png_io.buffer != nullptr) ? (length - png_io.length_left) : 0;
   }
 
-  bool LoadPNG(void *src, uint32_t length, Img &img, bool flip_y) {
+  bool LoadPNG(void *src, uint32_t length, Img &img, bool bottom_first) {
     if (src == nullptr || length == 0) {
       return false;
     }
@@ -375,6 +380,10 @@ namespace imgpp {
     png_byte filter_method = png_get_filter_type(png_ptr, info_ptr);
     png_byte compression_type = png_get_compression_type(png_ptr, info_ptr);
     png_byte interlace_type = png_get_interlace_type(png_ptr, info_ptr);
+    if (interlace_type != 0) {
+      png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
+      return PNGAbort("imgpp: no support for interlaced PNG!");
+    }
 
     row_pointers = new png_bytep[height];
 
@@ -396,7 +405,7 @@ namespace imgpp {
     }
 
     img.SetSize(width, height, 1, num_channel, bit_depth);
-    if (flip_y) {
+    if (bottom_first) {
       for (int y = 0; y < height; y++) {
         row_pointers[y] = (unsigned char*)img.ROI().PtrAt(0, height - y - 1, 0);
       }

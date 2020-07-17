@@ -193,7 +193,7 @@ bool WriteBSON(const Img &img, std::string &bson) {
   return true;
 }
 
-bool WriteBSON(const ImgROI &roi, std::string &bson, bool flip_y) {
+bool WriteBSON(const ImgROI &roi, std::string &bson) {
 
   // calc pitch
   auto pitch = ImgROI::CalcPitch(roi.Width(), roi.Channel(), roi.BPC(), 1);
@@ -212,17 +212,9 @@ bool WriteBSON(const ImgROI &roi, std::string &bson, bool flip_y) {
   WriteElement("flt", (int32_t)roi.IsFloat(), bson);
   WriteElement("b", nullptr, slice_pitch * roi.Depth(), bson);
 
-  if (flip_y) {
-    for (uint32_t z = 0; z < roi.Depth(); ++z) {
-      for (int32_t y = (int32_t)roi.Height() - 1; y >= 0; --y) {
-        bson.append((const char*)roi.PtrAt(0, y, z, 0), pitch);
-      }
-    }
-  } else {
-    for (uint32_t z = 0; z < roi.Depth(); ++z) {
-      for (uint32_t y = 0; y < roi.Height(); ++y) {
-        bson.append((const char*)roi.PtrAt(0, y, z, 0), pitch);
-      }
+  for (uint32_t z = 0; z < roi.Depth(); ++z) {
+    for (uint32_t y = 0; y < roi.Height(); ++y) {
+      bson.append((const char*)roi.PtrAt(0, y, z, 0), pitch);
     }
   }
 
@@ -252,7 +244,7 @@ bool WriteBSON(const char *fn, const Img &img) {
   return true;
 }
 
-bool WriteBSON(const char *fn, const ImgROI &roi, bool flip_y) {
+bool WriteBSON(const char *fn, const ImgROI &roi) {
   if (fn == nullptr) {
     return false;
   }
@@ -263,7 +255,7 @@ bool WriteBSON(const char *fn, const ImgROI &roi, bool flip_y) {
   }
 
   std::string bson;
-  WriteBSON(roi, bson, flip_y);
+  WriteBSON(roi, bson);
 
   outfile.write((char*)bson.data(), bson.size());
   outfile.close();
