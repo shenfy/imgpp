@@ -107,7 +107,7 @@ const char* ParseHeader(const char *buffer, uint32_t length,
 namespace imgpp {
 
 
-bool LoadPFM(const char *fn, Img &img, bool flip_y) {
+bool LoadPFM(const char *fn, Img &img, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn)) {
     return false;
   }
@@ -133,7 +133,7 @@ bool LoadPFM(const char *fn, Img &img, bool flip_y) {
   }
 
   int32_t line_len = sizeof(float) * width * channels;
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < height; ++y) {
       infile.read((char*)img.ROI().PtrAt(0, y, 0), line_len);
     }
@@ -146,7 +146,7 @@ bool LoadPFM(const char *fn, Img &img, bool flip_y) {
   return infile.good();
 }
 
-bool LoadPFM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
+bool LoadPFM(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
   if (buffer == nullptr || length == 0) {
     return false;
   }
@@ -168,7 +168,7 @@ bool LoadPFM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   }
 
   int32_t line_len = sizeof(float) * width * channels;
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < height; ++y) {
       memcpy((char*)img.ROI().PtrAt(0, y, 0), p, line_len);
       p += (size_t)line_len;
@@ -183,7 +183,7 @@ bool LoadPFM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   return true;
 }
 
-bool WritePFM(const char *fn, const ImgROI &roi, bool flip_y) {
+bool WritePFM(const char *fn, const ImgROI &roi, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn)) {
     return false;
   }
@@ -207,7 +207,7 @@ bool WritePFM(const char *fn, const ImgROI &roi, bool flip_y) {
     return false;
   }
 
-  if (flip_y) {
+  if (bottom_first) {
     for (uint32_t y = 0; y < roi.Height(); y++) {
       p = (char*)roi.PtrAt(0, y, 0);
       outfile.write(p, sizeof(float) * roi.Width() * roi.Channel());

@@ -108,7 +108,7 @@ const char *ParseHeader(const char *buffer, uint32_t length,
 
 namespace imgpp {
 
-bool LoadPPM(const char *fn, Img &img, bool flip_y) {
+bool LoadPPM(const char *fn, Img &img, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn)) {
     return false;
   }
@@ -130,7 +130,9 @@ bool LoadPPM(const char *fn, Img &img, bool flip_y) {
 
   int32_t byte_len = bit_depth >> 3;
   int32_t line_len = width * channel * byte_len;
-  if (flip_y) {
+  // pgm and ppm are both stored from top to bottom
+  if (bottom_first) {
+    // flip image while reading
     for (uint32_t y = 0; y < height; ++y) {
       infile.read((char*)img.ROI().PtrAt(0, height - y - 1, 0), line_len);
     }
@@ -144,7 +146,7 @@ bool LoadPPM(const char *fn, Img &img, bool flip_y) {
   return true;
 }
 
-bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
+bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
   if (buffer == 0 || 0 == length) {
     return false;
   }
@@ -162,8 +164,10 @@ bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
 
   int32_t byte_len = bit_depth >> 3;
   int32_t line_len = width * channel * byte_len;
-  if (flip_y) {
+  // pgm and ppm are both stored from top to bottom
+  if (bottom_first) {
     for (uint32_t y = 0; y < height; ++y) {
+      // flip image while reading
       memcpy((char*)img.ROI().PtrAt(0, height - y - 1, 0), p, line_len);
       p += line_len;
     }
@@ -177,7 +181,7 @@ bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool flip_y) {
   return true;
 }
 
-bool WritePPM(const char *fn, const ImgROI &roi, bool flip_y) {
+bool WritePPM(const char *fn, const ImgROI &roi, bool bottom_first) {
   if (nullptr == fn || 0 == strlen(fn))
     return false;
 
@@ -201,7 +205,9 @@ bool WritePPM(const char *fn, const ImgROI &roi, bool flip_y) {
 
   int line_len = (int)roi.Pitch();
 
-  if (flip_y) {
+  // pgm and ppm are both stored from top to bottom
+  if (bottom_first) {
+    // write flipped image
     for (uint32_t y = 0; y < roi.Height(); y++) {
       p = (char*)roi.PtrAt(0, roi.Height() - y - 1, 0);
       outfile.write(p, line_len);

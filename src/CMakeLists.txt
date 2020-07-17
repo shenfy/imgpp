@@ -47,7 +47,15 @@ enable_testing()
 add_executable(basictest src/testcase.cpp)
 add_custom_command(
   TARGET basictest
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.png ${CMAKE_CURRENT_BINARY_DIR}/test.png
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.png ${CMAKE_CURRENT_BINARY_DIR}/
   COMMENT "Copy test images to build folder")
 target_link_libraries(basictest PRIVATE imgpp)
 add_test(basic basictest)
+
+add_executable(loadertest src/loadertest.cpp)
+add_custom_command(
+  TARGET basictest
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/checkboard.ppm ${CMAKE_CURRENT_BINARY_DIR}/
+  COMMENT "Copy test ppm image to build folder")
+target_link_libraries(loadertest PRIVATE imgpp)
+add_test(loaders loadertest)
