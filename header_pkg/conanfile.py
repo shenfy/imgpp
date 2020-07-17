@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class ImgppHeaderConan(ConanFile):
     name = "imgpp_headers"
-    version = "2.0.2"
+    version = "2.0.3"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"
