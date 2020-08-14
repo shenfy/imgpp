@@ -4,7 +4,7 @@
 /*! \file imgpp.hpp */
 
 #include <imgpp/imgbase.hpp>
-#include <imgpp/bcdesc.hpp>
+#include <imgpp/textureformat.hpp>
 
 namespace imgpp {
 
@@ -15,15 +15,15 @@ public:
 
   BCImgROI() {}
 
-  BCImgROI(uint8_t *src, BCFormat format,
+  BCImgROI(uint8_t *src, TextureFormat format,
     uint32_t w, uint32_t h, uint32_t depth, uint32_t pitch, uint32_t slice_pitch) {
-    if (format != UNKNOWN_BC && w != 0 && h != 0 && depth != 0) {
+    if (IsCompressedFormat(format) && w != 0 && h != 0 && depth != 0) {
       Init(src, format, w, h, depth, pitch, slice_pitch);
     }
   }
 
-  BCImgROI(uint8_t *src, BCFormat format, uint32_t w, uint32_t h, uint32_t depth) {
-    if (format != UNKNOWN_BC && w != 0 && h != 0 && depth != 0) {
+  BCImgROI(uint8_t *src, TextureFormat format, uint32_t w, uint32_t h, uint32_t depth) {
+    if (IsCompressedFormat(format) && w != 0 && h != 0 && depth != 0) {
       auto &desc = GetBCDesc(format);
       uint32_t horizontal_block_num = (w + desc.block_width - 1) / desc.block_width;
       uint32_t vertical_block_num = (h + desc.block_height - 1) / desc.block_height;
@@ -33,14 +33,14 @@ public:
     }
   }
 
-  BCImgROI(uint8_t *src, BCFormat format, uint32_t w, uint32_t h) :
+  BCImgROI(uint8_t *src, TextureFormat format, uint32_t w, uint32_t h) :
     BCImgROI(src, format, w, h, 1) {}
 
   BCImgROI(const BCImgROI &src,
     uint32_t left, uint32_t top, uint32_t front,
     uint32_t right, uint32_t bottom, uint32_t back) {
     if (right < src.width_ && bottom < src.height_ && back < src.depth_
-      && right >= left && bottom >= top && back >= front && src.format_ != UNKNOWN_BC) {
+      && right >= left && bottom >= top && back >= front && IsCompressedFormat(src.format_)) {
       auto &desc = GetBCDesc(src.format_);
       // 2D blocks only!!!
       Init((uint8_t*)(src.BlockAt(left / desc.block_width, top / desc.block_height, front)),
@@ -75,7 +75,7 @@ public:
     return data_ + z * slice_pitch_ + block_y * pitch_ + block_x * desc.block_bytes;
   }
 
-  BCFormat Format() const {
+  TextureFormat Format() const {
     return format_;
   }
 
@@ -131,18 +131,17 @@ public:
     return data_;
   }
 
-  static const uint32_t CalcPitch(BCFormat format, uint32_t w) {
+  static const uint32_t CalcPitch(TextureFormat format, uint32_t w) {
     auto &desc = GetBCDesc(format);
-    if (format == UNKNOWN_BC) {
+    if (!IsCompressedFormat(format)) {
       return 0;
     }
     auto horizontal_block_num = (w + desc.block_width - 1) / desc.block_width;
     return horizontal_block_num * desc.block_bytes;
   }
 
-
 private:
-  void Init(uint8_t *src, BCFormat format,
+  void Init(uint8_t *src, TextureFormat format,
     uint32_t w, uint32_t h, uint32_t depth,
     uint32_t pitch, uint32_t slice_pitch) {
     data_ = src;
@@ -158,7 +157,7 @@ private:
   }
 
   uint8_t *data_{nullptr}; //!<Data pointer. NOT a smart pointer hence NOT responsible the buffer!
-  BCFormat format_{UNKNOWN_BC};
+  TextureFormat format_{FORMAT_UNDEFINED};
 
   union {
     struct {
@@ -195,11 +194,11 @@ public:
   BCImg() {}
   ~BCImg() {}
 
-  BCImg(BCFormat format, uint32_t w, uint32_t h, uint32_t depth = 1) {
+  BCImg(TextureFormat format, uint32_t w, uint32_t h, uint32_t depth = 1) {
     SetSize(format, w, h, depth);
   }
 
-  void SetSize(BCFormat format, uint32_t w, uint32_t h, uint32_t depth) {
+  void SetSize(TextureFormat format, uint32_t w, uint32_t h, uint32_t depth) {
     entire_img_ = BCImgROI(nullptr, format, w, h, depth);
     if (entire_img_.width_ == 0) {
       return;

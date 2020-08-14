@@ -14,8 +14,7 @@ find_package(PNG REQUIRED)
 
 set(IMGPP_HEADER
   include/imgpp/algorithms.hpp
-  include/imgpp/bcdesc.hpp
-  include/imgpp/bchelper.hpp
+  include/imgpp/textureformat.hpp
   include/imgpp/imgbase.hpp
   include/imgpp/imgpp_bc.hpp
   include/imgpp/imgpp.hpp
@@ -28,7 +27,7 @@ set(IMGPP_HEADER
 add_library(imgpp STATIC)
 target_sources(imgpp PRIVATE
   src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp
-  src/jpegimg.cpp src/helper.cpp src/bson.cpp)
+  src/jpegimg.cpp src/helper.cpp src/bson.cpp src/gl.cpp src/ktximage.cpp)
 target_compile_features(imgpp PUBLIC cxx_std_17)
 set_target_properties(imgpp PROPERTIES PUBLIC_HEADER
   "${IMGPP_HEADER}")
@@ -59,3 +58,7 @@ add_custom_command(
   COMMENT "Copy test ppm image to build folder")
 target_link_libraries(loadertest PRIVATE imgpp)
 add_test(loaders loadertest)
+
+add_executable(ktxloadertest src/ktxloadertest.cpp)
+target_link_libraries(ktxloadertest PRIVATE imgpp)
+add_test(ktxloaders ktxloadertest)

@@ -9,7 +9,7 @@ namespace imgpp {
 
   class Img;
   class ImgROI;
-
+  class CompositeImg;
   //! \brief Load netbpm PPM format images.
   //!
   //! Although http://netpbm.sourceforge.net/doc/pgm.html and http://netpbm.sourceforge.net/doc/ppm.html
@@ -117,6 +117,9 @@ namespace imgpp {
   //! \param fn .bson file full path
   //! \param roi imgpp::ImgROI to serialize
   bool WriteBSON(const char *fn, const ImgROI &roi);
+
+  bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first);
+  bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_first);
 
 }
 
