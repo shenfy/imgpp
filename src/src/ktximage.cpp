@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <imgpp/compositeimg.hpp>
-#include <imgpp/textureformat.hpp>
-#include <imgpp/gl.hpp>
+#include <imgpp/texturedesc.hpp>
+#include <imgpp/glhelper.hpp>
 #include <imgpp/loaders.hpp>
 
 namespace {
@@ -62,11 +62,11 @@ uint32_t CalcFaceSize(const CompositeImg &composite_img, uint32_t level) {
   return face_size;
 }
 
-uint32_t ComputeKTXStorageSize(const CompositeImg &composite_img) {
+uint32_t ComputeKTXStorageSize(const CompositeImg &composite_img,
+  const std::unordered_map<std::string, std::string> &custom_data) {
   uint32_t total_size = sizeof(FOURCC_KTX10) + sizeof(KTXHeader);
   // KeyValue Data size
-  const auto &kv_map = composite_img.Info();
-  for (const auto &kv_pair: kv_map) {
+  for (const auto &kv_pair: custom_data) {
     total_size += sizeof(uint32_t) +
       4 * ((kv_pair.first.size() + 1 + kv_pair.second.size() + 3) / 4);
   }
@@ -92,7 +92,8 @@ inline std::array<uint32_t, 3> CalcExtent(const std::array<uint32_t, 3> &origina
 }
 
 namespace imgpp {
-bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first) {
+bool LoadKTX(const char *fn, CompositeImg &composite_img,
+  std::unordered_map<std::string, std::string> &custom_data, bool bottom_first) {
   if (bottom_first) {
     std::cerr << "Bottom first not support yet!" << std::endl;
     return false;
@@ -113,31 +114,28 @@ bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first) {
   }
   KTXHeader ktx_header;
   in.read((char *)(&ktx_header), sizeof(KTXHeader));
-  uint32_t img_data_size = total_size - ktx_header.bytes_of_key_value_data - sizeof(KTXHeader);
-  auto texture_format = gl::Find(
-    static_cast<gl::InternalFormat>(ktx_header.gl_internal_format),
-    static_cast<gl::ExternalFormat>(ktx_header.gl_format),
-    static_cast<gl::TypeFormat>(ktx_header.gl_type));
+  auto texture_format = gl::TranslateFromGL(
+    ktx_header.gl_internal_format,
+    ktx_header.gl_format,
+    ktx_header.gl_base_internal_format,
+    ktx_header.gl_type);
   auto texture_target = GetTarget(ktx_header);
   if(texture_format == FORMAT_UNDEFINED) {
     std::cerr << "Unknown texture format" << std::endl;
     return false;
   }
-  composite_img.SetFormat(texture_format);
-  composite_img.SetTarget(texture_target);
-  composite_img.SetSize(
-    std::max(ktx_header.number_of_mipmap_levels, 1u),
-    std::max(ktx_header.number_of_array_elements, 1u),
-    std::max(ktx_header.number_of_faces, 1u), img_data_size);
-  if (ktx_header.number_of_mipmap_levels == 0) {
-    composite_img.AutoGenerateMipmaps();
-  }
+  TextureDesc desc;
+  desc.format = texture_format;
+  desc.target = texture_target;
+  desc.mipmap = ktx_header.number_of_mipmap_levels != 1;
+  composite_img.TexDesc() = desc;
   std::array<uint32_t, 3> original_extent = {
     std::max(ktx_header.pixel_width, 1u),
     std::max(ktx_header.pixel_height, 1u),
     std::max(ktx_header.pixel_depth, 1u)
   };
   // Parse user-defined key-value data
+  custom_data.clear();
   int64_t kv_left = ktx_header.bytes_of_key_value_data;
   while (kv_left > 0) {
     uint32_t kv_size = 0;
@@ -149,37 +147,32 @@ bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first) {
 
     std::string key = kv_data.substr(0, null_char_pos);
     std::string value = kv_data.substr(null_char_pos + 1);
-    composite_img.SetInfo(std::move(key), std::move(value));
+    custom_data.insert_or_assign(std::move(key), std::move(value));
     // read padding
     in.read((char*)kv_data.data(), 3 - (kv_size + 3) % 4);
     kv_left -= 4 + ((kv_size + 3) / 4) * 4;
   }
-
-  in.read((char*)composite_img.Data().GetBuffer(), img_data_size);
+  uint32_t img_data_size = total_size - ktx_header.bytes_of_key_value_data - sizeof(KTXHeader);
+  ImgBuffer img_buf(img_data_size);
+  in.read((char*)img_buf.GetBuffer(), img_data_size);
   if (IsCompressedFormat(texture_format)) {
-    const BCDesc& bc_desc = GetBCDesc(texture_format);
+    composite_img.SetSize(std::max(ktx_header.number_of_mipmap_levels, 1u),
+      std::max(ktx_header.number_of_array_elements, 1u), std::max(ktx_header.number_of_faces, 1u),
+      original_extent[0], original_extent[1], original_extent[2]);
     int img_number = composite_img.Levels() * composite_img.Layers() * composite_img.Faces();
-    std::vector<BCImgROI> bc_rois(img_number);
     uint32_t offset = 0;
-    uint8_t *buffer = composite_img.Data().GetBuffer();
+    uint8_t *buffer = img_buf.GetBuffer();
     for (uint32_t level = 0; level < composite_img.Levels(); ++level) {
-      auto extent = CalcExtent(original_extent, texture_target, level);
       uint32_t img_size = *((uint32_t*)(buffer + offset));
       offset += 4;
-      uint32_t pitch = BCImgROI::CalcPitch(texture_format, extent[0]);
-      uint32_t slice_pitch = pitch * extent[1];
       for (uint32_t layer = 0; layer < composite_img.Layers(); ++layer) {
         for (uint32_t face = 0; face < composite_img.Faces(); ++face) {
-          uint32_t flatten_id = level * composite_img.Layers() * composite_img.Faces() +
-            layer * composite_img.Faces() + face;
-          BCImgROI bc_roi(buffer + offset, texture_format,
-            extent[0], extent[1], extent[2]);
-          bc_rois[flatten_id] = bc_roi;
-          offset += slice_pitch * extent[2];
+          composite_img.SetData(buffer + offset, level, layer, face);
+          const BCImgROI &bc_roi = composite_img.BCROI(level, layer, face);
+          offset += bc_roi.SlicePitch() * bc_roi.Depth();
         }
       }
     }
-    composite_img.AddBCROI(std::move(bc_rois));
   } else {
     const PixelDesc& pixel_desc = GetPixelDesc(texture_format);
     uint32_t bpp = 0;
@@ -196,60 +189,61 @@ bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first) {
       channel = 1;
       bpc = bpp;
     }
+    composite_img.SetSize(std::max(ktx_header.number_of_mipmap_levels, 1u),
+      std::max(ktx_header.number_of_array_elements, 1u), std::max(ktx_header.number_of_faces, 1u),
+      original_extent[0], original_extent[1], original_extent[2], channel, bpc,
+      pixel_desc.is_float, pixel_desc.is_signed, 4);
     // Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4
-    int img_number = composite_img.Levels() * composite_img.Layers() * composite_img.Faces();
-    std::vector<ImgROI> rois(img_number);
     uint32_t offset = 0;
-    uint8_t *buffer = composite_img.Data().GetBuffer();
+    uint8_t *buffer = img_buf.GetBuffer();
     for (uint32_t level = 0; level < composite_img.Levels(); ++level) {
-      auto extent = CalcExtent(original_extent, texture_target, level);
       uint32_t img_size = *((uint32_t*)(buffer + offset));
       offset += 4;
-      uint32_t pitch = ImgROI::CalcPitch(extent[0], channel, bpc, 4);
-      uint32_t slice_pitch = pitch * extent[1];
       for (uint32_t layer = 0; layer < composite_img.Layers(); ++layer) {
         for (uint32_t face = 0; face < composite_img.Faces(); ++face) {
-          uint32_t flatten_id = level * composite_img.Layers() * composite_img.Faces() +
-            layer * composite_img.Faces() + face;
-          ImgROI roi(buffer + offset, extent[0], extent[1], extent[2],
-            channel, bpc, pitch, slice_pitch, pixel_desc.is_float, pixel_desc.is_signed);
-          rois[flatten_id] = roi;
-          offset += slice_pitch * extent[2];
+          composite_img.SetData(buffer + offset, level, layer, face);
+          const ImgROI &roi = composite_img.ROI(level, layer, face);
+          offset += roi.SlicePitch() * roi.Depth();
         }
       }
     }
-    composite_img.AddROI(std::move(rois));
   }
+  composite_img.AddBuffer(std::move(img_buf));
   return true;
 }
 
-bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_first) {
+bool WriteKTX(const char *fn, const CompositeImg &composite_img,
+  const std::unordered_map<std::string, std::string> &custom_data, bool bottom_first) {
   if (bottom_first) {
     return false;
   }
-  if (composite_img.Format() == FORMAT_UNDEFINED) {
+  std::ofstream out(fn, std::ios::binary);
+  if (!out.good()) {
     return false;
   }
-  uint32_t total_size = ComputeKTXStorageSize(composite_img);
+  const TextureDesc desc = composite_img.TexDesc();
+  if (desc.format == FORMAT_UNDEFINED) {
+    return false;
+  }
+  uint32_t total_size = ComputeKTXStorageSize(composite_img, custom_data);
   std::vector<uint8_t> data(total_size, 0);
   uint32_t offset = 0;
   std::memcpy(data.data(), FOURCC_KTX10, sizeof(FOURCC_KTX10));
   offset += sizeof(FOURCC_KTX10);
-  gl::FormatDesc gl_desc = gl::Translate(composite_img.Format());
+  gl::GLFormatDesc gl_desc = gl::TranslateToGL(desc.format);
   const ImgROI &roi = composite_img.ROI(0, 0, 0);
   KTXHeader &header = *reinterpret_cast<KTXHeader*>(data.data() + offset);
   header.endianness = 0x04030201;
   header.gl_type = (uint32_t)(gl_desc.type);
   if (composite_img.IsCompressed()) {
-    const auto &bc_desc = GetBCDesc(composite_img.Format());
-    header.gl_type_size = bc_desc.block_bytes;
-  } else {
     header.gl_type_size = 1;
+  } else {
+    header.gl_type_size = gl::GetTypeSize(gl_desc.type);
   }
-  header.gl_format = gl_desc.external;
-  header.gl_internal_format = gl_desc.internal;
-  header.gl_base_internal_format = gl_desc.external;
-  const TextureTarget &target = composite_img.Target();
+  header.gl_format = gl_desc.external_format;
+  header.gl_internal_format = gl_desc.internal_format;
+  header.gl_base_internal_format = gl_desc.base_internal_format;
+  const TextureTarget &target = desc.target;
   if (composite_img.IsCompressed()) {
     const BCImgROI &bc_roi = composite_img.BCROI(0, 0, 0);
     header.pixel_width = bc_roi.Width();
@@ -263,28 +257,30 @@ bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_fir
   }
   header.number_of_array_elements = IsTargetArray(target) ? composite_img.Layers() : 0;
   header.number_of_faces = IsTargetCube(target) ? 6 : 1;
-  header.number_of_mipmap_levels = composite_img.NeedGenerateMipmaps() ? 0 : composite_img.Levels();
+  if (desc.mipmap && composite_img.Levels() == 1) {
+    header.number_of_mipmap_levels = 0;
+  } else {
+    header.number_of_mipmap_levels = composite_img.Levels();
+  }
   offset += sizeof(KTXHeader);
 
-  const auto &kv_map = composite_img.Info();
-  if (!kv_map.empty()) {
-    for (const auto &item: kv_map) {
-      uint32_t &kv_data_size = *reinterpret_cast<uint32_t*>(data.data() + offset);
-      std::memcpy(data.data() + offset + sizeof(uint32_t), item.first.data(), item.first.size());
-      // Jump key and null terminate
-      std::memcpy(data.data() + offset + sizeof(uint32_t) + item.first.size() + 1, item.second.data(), item.second.size());
-      kv_data_size = item.first.size() + 1 + item.second.size();
-      offset += sizeof(uint32_t) + 4 * ((kv_data_size + 3) / 4);
-      header.bytes_of_key_value_data += sizeof(uint32_t) + 4 * ((kv_data_size + 3) / 4);
-    }
+  for (const auto &item: custom_data) {
+    uint32_t &kv_data_size = *reinterpret_cast<uint32_t*>(data.data() + offset);
+    std::memcpy(data.data() + offset + sizeof(uint32_t), item.first.data(), item.first.size());
+    // Jump key and null terminate
+    std::memcpy(data.data() + offset + sizeof(uint32_t) + item.first.size() + 1, item.second.data(), item.second.size());
+    kv_data_size = item.first.size() + 1 + item.second.size();
+    offset += sizeof(uint32_t) + 4 * ((kv_data_size + 3) / 4);
+    header.bytes_of_key_value_data += sizeof(uint32_t) + 4 * ((kv_data_size + 3) / 4);
   }
+
   if (composite_img.IsCompressed()) {
     for (uint32_t level = 0; level < composite_img.Levels(); ++level) {
       uint32_t &img_size = *reinterpret_cast<uint32_t*>(data.data() + offset);
       img_size = 0;
       offset += sizeof(uint32_t);
       uint32_t face_size = CalcFaceSize(composite_img, level);
-      if (composite_img.Target() == TARGET_CUBE) {
+      if (desc.target == TARGET_CUBE) {
         img_size = face_size;
       } else {
         img_size = composite_img.Layers() * composite_img.Faces() * face_size;
@@ -302,7 +298,7 @@ bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_fir
       img_size = 0;
       offset += sizeof(uint32_t);
       uint32_t face_size = CalcFaceSize(composite_img, level);
-      if (composite_img.Target() == TARGET_CUBE) {
+      if (desc.target == TARGET_CUBE) {
         img_size = face_size;
       } else {
         img_size = composite_img.Layers() * composite_img.Faces() * face_size;
@@ -315,11 +311,8 @@ bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_fir
       }
     }
   }
-  std::ofstream out(fn, std::ios::binary);
-  if (!out.good()) {
-    return false;
-  }
+
   out.write((char*)data.data(), data.size());
-  return true;
+  return out.good();
 }
 }

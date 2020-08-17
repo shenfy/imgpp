@@ -2,7 +2,7 @@
 #define IMGPP_LOADERS_HPP
 
 #include <string>
-
+#include <unordered_map>
 /*! \file loaders.hpp */
 
 namespace imgpp {
@@ -118,8 +118,10 @@ namespace imgpp {
   //! \param roi imgpp::ImgROI to serialize
   bool WriteBSON(const char *fn, const ImgROI &roi);
 
-  bool LoadKTX(const char *fn, CompositeImg &composite_img, bool bottom_first);
-  bool WriteKTX(const char *fn, const CompositeImg &composite_img, bool bottom_first);
+  bool LoadKTX(const char *fn, CompositeImg &composite_img,
+    std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
+  bool WriteKTX(const char *fn, const CompositeImg &composite_img,
+    const std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 
 }
 

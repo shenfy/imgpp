@@ -4,7 +4,7 @@
 /*! \file imgpp.hpp */
 
 #include <imgpp/imgbase.hpp>
-#include <imgpp/textureformat.hpp>
+#include <imgpp/texturedesc.hpp>
 
 namespace imgpp {
 

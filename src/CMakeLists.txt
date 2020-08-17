@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.0.3 LANGUAGES CXX)
+project(imgpp VERSION 2.1.0 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -14,7 +14,8 @@ find_package(PNG REQUIRED)
 
 set(IMGPP_HEADER
   include/imgpp/algorithms.hpp
-  include/imgpp/textureformat.hpp
+  include/imgpp/texturedesc.hpp
+  include/imgpp/glhelper.hpp
   include/imgpp/imgbase.hpp
   include/imgpp/imgpp_bc.hpp
   include/imgpp/imgpp.hpp
@@ -27,7 +28,7 @@ set(IMGPP_HEADER
 add_library(imgpp STATIC)
 target_sources(imgpp PRIVATE
   src/bmpimg.cpp src/pfmimg.cpp src/ppmimg.cpp src/pngimg.cpp
-  src/jpegimg.cpp src/helper.cpp src/bson.cpp src/gl.cpp src/ktximage.cpp)
+  src/jpegimg.cpp src/helper.cpp src/bson.cpp src/glhelper.cpp src/ktximage.cpp)
 target_compile_features(imgpp PUBLIC cxx_std_17)
 set_target_properties(imgpp PROPERTIES PUBLIC_HEADER
   "${IMGPP_HEADER}")

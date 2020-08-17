@@ -1,12 +1,10 @@
 #ifndef IMGPP_COMPOSITEIMG_HPP
 #define IMGPP_COMPOSITEIMG_HPP
 
-#include <string>
 #include <vector>
-#include <unordered_map>
 #include <imgpp/imgpp.hpp>
 #include <imgpp/imgpp_bc.hpp>
-#include <imgpp/textureformat.hpp>
+#include <imgpp/texturedesc.hpp>
 
 namespace imgpp {
 
@@ -14,93 +12,82 @@ class CompositeImg {
 public:
   CompositeImg() {
   };
-  CompositeImg(TextureFormat format, TextureTarget target,
-    uint32_t levels, uint32_t layers, uint32_t faces)
-    : texture_format_(format), texture_target_(target),
-    levels_(levels), layers_(layers), faces_(faces) {
+  CompositeImg(TextureDesc desc, uint32_t levels, uint32_t layers, uint32_t faces)
+    : tex_desc(desc), levels_(levels), layers_(layers), faces_(faces) {
   }
   ~CompositeImg() {
   };
 
-  void SetTarget(TextureTarget target) {
-    texture_target_ = target;
+  const TextureDesc &TexDesc() const {
+    return tex_desc;
   }
 
-  TextureTarget Target() const {
-    return texture_target_;
+  TextureDesc &TexDesc() {
+    return tex_desc;
   }
 
-  void SetFormat(TextureFormat format) {
-    texture_format_ = format;
+  void SetSize(uint32_t levels, uint32_t layers, uint32_t faces,
+    uint32_t width, uint32_t height, uint32_t depth, uint32_t c, uint32_t bpc,
+    bool is_float, bool is_signed, uint8_t align_bytes) {
+    if (tex_desc.format != FORMAT_UNDEFINED) {
+      levels_ = levels;
+      layers_ = layers;
+      faces_ = faces;
+      align_bytes_ = align_bytes;
+      img_rois_.resize(levels * layers * faces);
+      uint32_t pitch = ImgROI::CalcPitch(width, c, bpc, align_bytes);
+      ImgROI roi(nullptr, width, height, depth, c, bpc,
+        pitch, pitch * height, is_float, is_signed);
+      img_rois_[0] = std::move(roi);
+    }
   }
 
-  TextureFormat Format() const {
-    return texture_format_;
+  void SetSize(uint32_t levels, uint32_t layers, uint32_t faces,
+    uint32_t width, uint32_t height, uint32_t depth) {
+    if (tex_desc.format != FORMAT_UNDEFINED) {
+      levels_ = levels;
+      layers_ = layers;
+      faces_ = faces;
+      bcimg_rois_.resize(levels * layers * faces);
+      BCImgROI bc_roi(nullptr, tex_desc.format, width, height, depth);
+      bcimg_rois_[0] = std::move(bc_roi);
+    }
   }
 
-  void AutoGenerateMipmaps() {
-    need_generate_mimaps_ = true;
+  void SetData(uint8_t *data, uint32_t level, uint32_t layer, uint32_t face) {
+    if (IsCompressed()) {
+      uint32_t width = std::max(bcimg_rois_[0].Width() >> level, 1u);
+      uint32_t height = std::max(bcimg_rois_[0].Height() >> level, 1u);
+      uint32_t depth = std::max(bcimg_rois_[0].Depth() >> level, 1u);
+      BCImgROI bcimg_roi(data, tex_desc.format, width, height, depth);
+      bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face] = bcimg_roi;
+    } else {
+      uint32_t width = std::max(img_rois_[0].Width() >> level, 1u);
+      uint32_t height = std::max(img_rois_[0].Height() >> level, 1u);
+      uint32_t depth = std::max(img_rois_[0].Depth() >> level, 1u);
+      uint32_t pitch = ImgROI::CalcPitch(width, img_rois_[0].Channel(), img_rois_[0].BPC(), align_bytes_);
+      ImgROI roi = ImgROI(data, width, height, depth,
+          img_rois_[0].Channel(), img_rois_[0].BPC(), pitch, pitch * height,
+          img_rois_[0].IsFloat(), img_rois_[0].IsSigned());
+      img_rois_[level * layers_ * faces_ + layer * faces_ + face] = roi;
+    }
   }
 
-  bool NeedGenerateMipmaps() const {
-    return need_generate_mimaps_;
-  }
-
-  void SetSize(uint32_t levels, uint32_t layers, uint32_t faces, uint32_t data_size) {
-    levels_ = levels;
-    layers_ = layers;
-    faces_ = faces;
-    buffer_.SetSize(data_size);
-  }
-
-  // Make sure all rois is 4 bytes alignment
-  void AddROI(std::vector<ImgROI> img_rois) {
-    img_rois_ = std::move(img_rois);
+  void AddBuffer(imgpp::ImgBuffer buffer) {
+    buffers_.push_back(std::move(buffer));
   }
 
   const ImgROI &ROI(uint32_t level, uint32_t layer, uint32_t face) const {
     return img_rois_[level * layers_ * faces_ + layer * faces_ + face];
   }
 
-  // Make sure all rois is 4 bytes alignment
-  void AddBCROI(std::vector<BCImgROI> bcimg_rois) {
-    bcimg_rois_ = std::move(bcimg_rois);
-  }
 
   const BCImgROI &BCROI(uint32_t level, uint32_t layer, uint32_t face) const {
     return bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face];
   }
 
-  void SetInfo(std::string &&key, std::string &&value) {
-    customized_info_.insert_or_assign(key, value);
-  }
-
-  void SetInfo(const std::string &key, const std::string &value) {
-    customized_info_.insert_or_assign(key, value);
-  }
-
-  const std::string &GetInfo(const std::string &key) const {
-    if (auto it = customized_info_.find(key); it != customized_info_.end()) {
-      return it->second;
-    } else {
-      return "";
-    }
-  }
-
-  const auto &Info() const {
-    return customized_info_;
-  }
-
-  ImgBuffer &Data() {
-    return buffer_;
-  }
-
-  const ImgBuffer &Data() const {
-    return buffer_;
-  }
-
   bool IsCompressed() const {
-    return IsCompressedFormat(texture_format_);
+    return IsCompressedFormat(tex_desc.format);
   }
 
   uint32_t Levels() const {
@@ -116,18 +103,16 @@ public:
   }
 
 private:
-  ImgBuffer buffer_;
+  std::vector<ImgBuffer> buffers_;
   std::vector<ImgROI> img_rois_;
   std::vector<BCImgROI> bcimg_rois_;
-  std::unordered_map<std::string, std::string> customized_info_;
-  TextureFormat texture_format_{FORMAT_UNDEFINED};
-  TextureTarget texture_target_;
-  bool need_generate_mimaps_{false};
+  TextureDesc tex_desc;
   // mipmap levels
   uint32_t levels_{0};
   uint32_t layers_{0};
   // for cubemap faces is 6, otherwise 1
   uint32_t faces_{0};
+  uint32_t align_bytes_{1};
 };
 }
 #endif

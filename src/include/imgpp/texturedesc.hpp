@@ -1,10 +1,11 @@
-#ifndef IMGPP_TEXTUREFORMAT_HPP
-#define IMGPP_TEXTUREFORMAT_HPP
+#ifndef IMGPP_TEXTUREDESC_HPP
+#define IMGPP_TEXTUREDESC_HPP
 
 #include <cstdint>
 namespace imgpp {
 enum TextureTarget: uint8_t {
-  TARGET_1D = 0, TARGET_FIRST = TARGET_1D,
+  TARGET_NONE = 0,
+  TARGET_1D, TARGET_FIRST = TARGET_1D,
   TARGET_1D_ARRAY,
   TARGET_2D,
   TARGET_2D_ARRAY,
@@ -14,31 +15,6 @@ enum TextureTarget: uint8_t {
   TARGET_CUBE,
   TARGET_CUBE_ARRAY, TARGET_LAST = TARGET_CUBE_ARRAY
 };
-
-inline bool IsTarget1d(TextureTarget target)
-{
-  return target == TARGET_1D || target == TARGET_1D_ARRAY;
-}
-
-inline bool IsTarget3d(TextureTarget target)
-{
-  return target == TARGET_3D;
-}
-
-inline bool IsTargetArray(TextureTarget target)
-{
-  return target == TARGET_1D_ARRAY || target == TARGET_2D_ARRAY || target == TARGET_CUBE_ARRAY;
-}
-
-inline bool IsTargetCube(TextureTarget target)
-{
-  return target == TARGET_CUBE || target == TARGET_CUBE_ARRAY;
-}
-
-inline bool IsTargetRect(TextureTarget target)
-{
-  return target == TARGET_RECT || target == TARGET_RECT_ARRAY;
-}
 
 enum TextureFormat: uint16_t {
   FORMAT_UNDEFINED = 0,
@@ -217,6 +193,44 @@ struct PixelDesc {
   bool is_float;
 };
 
+// BlockCompression texture description
+struct BCDesc {
+  uint32_t block_width {0};
+  uint32_t block_height {0};
+  uint32_t block_bytes {0};
+};
+
+struct TextureDesc {
+  TextureFormat format{FORMAT_UNDEFINED};
+  TextureTarget target{TARGET_NONE};
+  bool mipmap{false};
+};
+
+inline bool IsTarget1d(TextureTarget target)
+{
+  return target == TARGET_1D || target == TARGET_1D_ARRAY;
+}
+
+inline bool IsTarget3d(TextureTarget target)
+{
+  return target == TARGET_3D;
+}
+
+inline bool IsTargetArray(TextureTarget target)
+{
+  return target == TARGET_1D_ARRAY || target == TARGET_2D_ARRAY || target == TARGET_CUBE_ARRAY;
+}
+
+inline bool IsTargetCube(TextureTarget target)
+{
+  return target == TARGET_CUBE || target == TARGET_CUBE_ARRAY;
+}
+
+inline bool IsTargetRect(TextureTarget target)
+{
+  return target == TARGET_RECT || target == TARGET_RECT_ARRAY;
+}
+
 // Make sure IsCompressed(format) == false
 inline const PixelDesc &GetPixelDesc(TextureFormat format) {
   static const PixelDesc descs[] {
@@ -312,12 +326,6 @@ inline const PixelDesc &GetPixelDesc(TextureFormat format) {
   };
   return descs[(int)(format - FORMAT_FIRST)];
 }
-// BlockCompression texture description
-struct BCDesc {
-  uint32_t block_width {0};
-  uint32_t block_height {0};
-  uint32_t block_bytes {0};
-};
 
 inline bool IsCompressedFormat(TextureFormat format) {
   return format >= FORMAT_BLOCK_COMPRESSION_START && format <= FORMAT_BLOCK_COMPRESSION_LAST;
@@ -326,80 +334,80 @@ inline bool IsCompressedFormat(TextureFormat format) {
 // Make sure IsCompressed(format) == true
 inline const BCDesc &GetBCDesc(TextureFormat format) {
   static const BCDesc descs[] = {
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
 
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
 
-    { 16, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 5, 4 },
-    { 16, 5, 4 },
-    { 16, 5, 5 },
-    { 16, 5, 5 },
-    { 16, 6, 5 },
-    { 16, 6, 5 },
-    { 16, 6, 6 },
-    { 16, 6, 6 },
-    { 16, 8, 5 },
-    { 16, 8, 5 },
-    { 16, 8, 6 },
-    { 16, 8, 6 },
-    { 16, 8, 8 },
-    { 16, 8, 8 },
-    { 16, 10, 5 },
-    { 16, 10, 5 },
-    { 16, 10, 6 },
-    { 16, 10, 6 },
-    { 16, 10, 8 },
-    { 16, 10, 8 },
-    { 16, 10, 10 },
-    { 16, 10, 10 },
-    { 16, 12, 10 },
-    { 16, 12, 10 },
-    { 16, 12, 12 },
-    { 16, 12, 12 },
+    { 4, 4, 16 },
+    { 4, 4, 16 },
+    { 5, 4, 16 },
+    { 5, 4, 16 },
+    { 5, 5, 16 },
+    { 5, 5, 16 },
+    { 6, 5, 16 },
+    { 6, 5, 16 },
+    { 6, 6, 16 },
+    { 6, 6, 16 },
+    { 8, 5, 16 },
+    { 8, 5, 16 },
+    { 8, 6, 16 },
+    { 8, 6, 16 },
+    { 8, 8, 16 },
+    { 8, 8, 16 },
+    { 10, 5, 16 },
+    { 10, 5, 16 },
+    { 10, 6, 16 },
+    { 10, 6, 16 },
+    { 10, 8, 16 },
+    { 10, 8, 16 },
+    { 10, 10, 16 },
+    { 10, 10, 16 },
+    { 12, 10, 16 },
+    { 12, 10, 16 },
+    { 12, 12, 16 },
+    { 12, 12, 16 },
 
-    { 32, 8, 8 },
-    { 32, 8, 8 },
-    { 32, 16, 8 },
-    { 32, 16, 8 },
-    { 32, 8, 8 },
-    { 32, 8, 8 },
-    { 32, 16, 8 },
-    { 32, 16, 8 },
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    {  8, 8, 4 },
-    {  8, 8, 4 },
+    { 8, 8, 32 },
+    { 8, 8, 32 },
+    { 16, 8, 32 },
+    { 16, 8, 32 },
+    { 8, 8, 32 },
+    { 8, 8, 32 },
+    { 16, 8, 32 },
+    { 16, 8, 32 },
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 8, 4,  8 },
+    { 8, 4,  8 },
 
-    {  8, 4, 4 },
-    {  8, 4, 4 },
-    { 16, 4, 4 },
-    { 16, 4, 4 }
+    { 4, 4,  8 },
+    { 4, 4,  8 },
+    { 4, 4, 16 },
+    { 4, 4, 16 }
   };
   return descs[(int)(format - FORMAT_BLOCK_COMPRESSION_START)];
 }
