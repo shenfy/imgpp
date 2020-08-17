@@ -6,42 +6,30 @@
 
 namespace imgpp {
 
-template<typename T, typename TR, int dim>
-bool Tex2DNN(const ImgROI &roi, float x, float y, TR &result) {
-  if (x < 0 || x > roi.Width() || y < 0 || y >= roi.Height()) {
-    return false;
-  }
+template<typename T>
+T Tex2DNN(const ImgROI &roi, float x, float y) {
   uint32_t ui = (uint32_t)(x + 0.5f);
   uint32_t vi = (uint32_t)(y + 0.5f);
 
-  for (int i = 0; i < dim; i++) {
-    result[i] = roi.At<T>(ui, vi, (uint32_t)i);
-  }
-  return true;
+  return roi.At<T>(ui, vi);
 }
 
-template<typename T, typename TR, int dim>
-bool Tex2DBilinear(const ImgROI &roi, float x, float y, TR &result) {
-  if (x < 0 || x > roi.Width() - 1 || y < 0 || y > roi.Height() - 1) {
-    return false;
-  }
-  uint32_t u0 = (uint32_t)(floor(x));
-  uint32_t v0 = (uint32_t)(floor(y));
-  uint32_t u1 = (uint32_t)(ceil(x));
-  uint32_t v1 = (uint32_t)(ceil(y));
+template<typename T>
+T Tex2DBilinear(const ImgROI &roi, float x, float y) {
+  uint32_t u0 = std::max((uint32_t)floor(x), 0u);
+  uint32_t v0 = std::max((uint32_t)floor(y), 0u);
+  uint32_t u1 = std::min(u0 + 1, roi.Width() - 1);
+  uint32_t v1 = std::min(v0 + 1, roi.Height() - 1);
   float u = x - u0;
   float v = y - v0;
 
-  for (int i = 0; i < dim; i++) {
-    T val_u0 = roi.At<T>(u0, v0, (uint32_t)i);
-    T val_u1 = roi.At<T>(u1, v0, (uint32_t)i);
-    T val_u2 = roi.At<T>(u0, v1, (uint32_t)i);
-    T val_u3 = roi.At<T>(u1, v1, (uint32_t)i);
-    T val_uv0 = val_u0 * (1.0f - u) + val_u1 * u;
-    T val_uv1 = val_u2 * (1.0f - u) + val_u3 * u;
-    result[i] = val_uv0 * (1.0f - v) + val_uv1 * v;
-  }
-  return true;
+  auto val_u0 = roi.At<T>(u0, v0);
+  auto val_u1 = roi.At<T>(u1, v0);
+  auto val_u2 = roi.At<T>(u0, v1);
+  auto val_u3 = roi.At<T>(u1, v1);
+  auto val_uv0 = val_u0 * (1.0f - u) + val_u1 * u;
+  auto val_uv1 = val_u2 * (1.0f - u) + val_u3 * u;
+  return val_uv0 * (1.0f - v) + val_uv1 * v;
 }
 
 } //namespace imgpp
