@@ -12,9 +12,7 @@ class CompositeImg {
 public:
   CompositeImg() {
   };
-  CompositeImg(TextureDesc desc, uint32_t levels, uint32_t layers, uint32_t faces)
-    : tex_desc(desc), levels_(levels), layers_(layers), faces_(faces) {
-  }
+
   ~CompositeImg() {
   };
 
@@ -36,21 +34,19 @@ public:
       align_bytes_ = align_bytes;
       img_rois_.resize(levels * layers * faces);
       uint32_t pitch = ImgROI::CalcPitch(width, c, bpc, align_bytes);
-      ImgROI roi(nullptr, width, height, depth, c, bpc,
+      img_rois_[0] = ImgROI(nullptr, width, height, depth, c, bpc,
         pitch, pitch * height, is_float, is_signed);
-      img_rois_[0] = std::move(roi);
     }
   }
 
-  void SetSize(uint32_t levels, uint32_t layers, uint32_t faces,
+  void SetBCSize(uint32_t levels, uint32_t layers, uint32_t faces,
     uint32_t width, uint32_t height, uint32_t depth) {
     if (tex_desc.format != FORMAT_UNDEFINED) {
       levels_ = levels;
       layers_ = layers;
       faces_ = faces;
       bcimg_rois_.resize(levels * layers * faces);
-      BCImgROI bc_roi(nullptr, tex_desc.format, width, height, depth);
-      bcimg_rois_[0] = std::move(bc_roi);
+      bcimg_rois_[0] = BCImgROI(nullptr, tex_desc.format, width, height, depth);
     }
   }
 
@@ -59,17 +55,17 @@ public:
       uint32_t width = std::max(bcimg_rois_[0].Width() >> level, 1u);
       uint32_t height = std::max(bcimg_rois_[0].Height() >> level, 1u);
       uint32_t depth = std::max(bcimg_rois_[0].Depth() >> level, 1u);
-      BCImgROI bcimg_roi(data, tex_desc.format, width, height, depth);
-      bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face] = bcimg_roi;
+      bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face] =
+        BCImgROI(data, tex_desc.format, width, height, depth);
     } else {
       uint32_t width = std::max(img_rois_[0].Width() >> level, 1u);
       uint32_t height = std::max(img_rois_[0].Height() >> level, 1u);
       uint32_t depth = std::max(img_rois_[0].Depth() >> level, 1u);
       uint32_t pitch = ImgROI::CalcPitch(width, img_rois_[0].Channel(), img_rois_[0].BPC(), align_bytes_);
-      ImgROI roi = ImgROI(data, width, height, depth,
+      img_rois_[level * layers_ * faces_ + layer * faces_ + face] =
+        ImgROI(data, width, height, depth,
           img_rois_[0].Channel(), img_rois_[0].BPC(), pitch, pitch * height,
           img_rois_[0].IsFloat(), img_rois_[0].IsSigned());
-      img_rois_[level * layers_ * faces_ + layer * faces_ + face] = roi;
     }
   }
 
@@ -81,8 +77,15 @@ public:
     return img_rois_[level * layers_ * faces_ + layer * faces_ + face];
   }
 
+  ImgROI &ROI(uint32_t level, uint32_t layer, uint32_t face) {
+    return img_rois_[level * layers_ * faces_ + layer * faces_ + face];
+  }
 
   const BCImgROI &BCROI(uint32_t level, uint32_t layer, uint32_t face) const {
+    return bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face];
+  }
+
+  BCImgROI &BCROI(uint32_t level, uint32_t layer, uint32_t face) {
     return bcimg_rois_[level * layers_ * faces_ + layer * faces_ + face];
   }
 

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <fstream>
 #include <imgpp/compositeimg.hpp>
@@ -156,7 +157,7 @@ bool LoadKTX(const char *fn, CompositeImg &composite_img,
   ImgBuffer img_buf(img_data_size);
   in.read((char*)img_buf.GetBuffer(), img_data_size);
   if (IsCompressedFormat(texture_format)) {
-    composite_img.SetSize(std::max(ktx_header.number_of_mipmap_levels, 1u),
+    composite_img.SetBCSize(std::max(ktx_header.number_of_mipmap_levels, 1u),
       std::max(ktx_header.number_of_array_elements, 1u), std::max(ktx_header.number_of_faces, 1u),
       original_extent[0], original_extent[1], original_extent[2]);
     int img_number = composite_img.Levels() * composite_img.Layers() * composite_img.Faces();
