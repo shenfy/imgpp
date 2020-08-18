@@ -11,10 +11,10 @@ namespace imgpp {
 class CompositeImg {
 public:
   CompositeImg() {
-  };
+  }
 
   ~CompositeImg() {
-  };
+  }
 
   const TextureDesc &TexDesc() const {
     return tex_desc;
@@ -71,6 +71,10 @@ public:
 
   void AddBuffer(imgpp::ImgBuffer buffer) {
     buffers_.push_back(std::move(buffer));
+  }
+
+  const std::vector<ImgBuffer> &Buffers() const {
+    return buffers_;
   }
 
   const ImgROI &ROI(uint32_t level, uint32_t layer, uint32_t face) const {

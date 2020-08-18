@@ -19,6 +19,7 @@ set(IMGPP_HEADER
   include/imgpp/imgbase.hpp
   include/imgpp/imgpp_bc.hpp
   include/imgpp/imgpp.hpp
+  include/imgpp/compositeimg.hpp
   include/imgpp/loadersext.hpp
   include/imgpp/loaders.hpp
   include/imgpp/opencvbinding.hpp
