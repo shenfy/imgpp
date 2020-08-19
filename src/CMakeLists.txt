@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.0 LANGUAGES CXX)
+project(imgpp VERSION 2.2.0 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -15,9 +15,10 @@ find_package(PNG REQUIRED)
 set(IMGPP_HEADER
   include/imgpp/algorithms.hpp
   include/imgpp/texturedesc.hpp
+  include/imgpp/texturehelper.hpp
   include/imgpp/glhelper.hpp
   include/imgpp/imgbase.hpp
-  include/imgpp/imgpp_bc.hpp
+  include/imgpp/imgpp_block.hpp
   include/imgpp/imgpp.hpp
   include/imgpp/compositeimg.hpp
   include/imgpp/loadersext.hpp

@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class ImgppConan(ConanFile):
     name = "imgpp"
-    version = "2.1.0"
+    version = "2.2.0"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"

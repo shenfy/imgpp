@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <imgpp/imgpp.hpp>
@@ -9,7 +10,15 @@
 int main(int argc, char* argv[]) {
   imgpp::CompositeImg img;
   std::unordered_map<std::string, std::string> custom_data;
-  if (!LoadKTX(argv[1], img, custom_data, false)) {
+  std::ifstream in(argv[1], std::ios::binary);
+  in.seekg(0, std::ios::end);
+  size_t length = in.tellg();
+  in.seekg(0);
+  std::vector<char> data(length);
+  in.read((char*)data.data(), length);
+  in.close();
+  if (!LoadKTX(data.data(), length, img, custom_data, false)) {
+  // if (!LoadKTX(argv[1], img, custom_data, false)) {
     std::cout << "Failed to load ktx!" << std::endl;
     return 1;
   }
