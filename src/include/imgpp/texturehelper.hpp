@@ -1,13 +1,19 @@
 #ifndef IMGPP_TEXTUREHELPER_HPP
 #define IMGPP_TEXTUREHELPER_HPP
 
+/*! \file texturehelper.hpp */
+
 #include <tuple>
 #include <imgpp/texturedesc.hpp>
 #include <imgpp/imgpp_block.hpp>
 namespace imgpp {
-// Make sure IsCompressed(format) == false
+
+/*! \fn const auto &GetPixelDesc(TextureFormat format)
+    \Get pixel description of specified texture format.
+    \param format Specified texture format, make sure it is not a compressed format.
+    \return std::tuple<uint32_t, uint32_t, uint8_t, bool, bool>, which contains channel, bpc, packed_bytes, is_signed, is_float.
+*/
 inline const auto &GetPixelDesc(TextureFormat format) {
-  // channel, bpc, packed_bytes, is_signed, is_float
   using PixelDesc = std::tuple<uint32_t, uint32_t, uint8_t, bool, bool>;
   static const PixelDesc descs[] {
     { 2, 4,  1, false, false },
@@ -103,7 +109,11 @@ inline const auto &GetPixelDesc(TextureFormat format) {
   return descs[(int)(format - FORMAT_FIRST)];
 }
 
-// Make sure IsCompressed(format) == true
+/*! \fn const BlockSize &GetBlockSize(TextureFormat format)
+    \Get block size of specified compressed texture format.
+    \param format Specified texture format, make sure it is a compressed format.
+    \return BlockSize, which contains block width, block height, block bytes.
+*/
 inline const BlockSize &GetBlockSize(TextureFormat format) {
   static const BlockSize block_sizes[] = {
     { 4, 4,  8 },

@@ -9,8 +9,7 @@
 
 namespace {
 using namespace imgpp;
-// KTX 1.1 specification
-// https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
+
 const uint8_t KTX_ALIGNMENT = 4;
 static unsigned char const FOURCC_KTX10[] = {
   0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -61,7 +60,6 @@ uint32_t CalcFaceSize(const CompositeImg &composite_img, uint32_t level) {
   } else {
     const ImgROI &roi = composite_img.ROI(level, 0, 0);
     if (composite_img.AlignBytes() % KTX_ALIGNMENT == 0) {
-      // std::cout << roi.Pitch() << " " << roi.SlicePitch() << " " << roi.Width() << " " << roi.Height() << std::endl;
       face_size = roi.SlicePitch() * roi.Depth();
     } else {
       face_size = 4 * ((roi.Pitch() + 3 ) / 4) * roi.Height() * roi.Depth();
@@ -100,18 +98,18 @@ inline std::array<uint32_t, 3> CalcExtent(const std::array<uint32_t, 3> &origina
 }
 
 namespace imgpp {
-bool LoadKTX(const char *buffer, size_t length, CompositeImg &composite_img,
+bool LoadKTX(const char *src, size_t length, CompositeImg &composite_img,
     std::unordered_map<std::string, std::string> &custom_data, bool bottom_first) {
   if (bottom_first) {
     std::cerr << "Bottom first not support yet!" << std::endl;
     return false;
   }
-  if (memcmp(buffer, FOURCC_KTX10, sizeof(FOURCC_KTX10)) != 0) {
+  if (memcmp(src, FOURCC_KTX10, sizeof(FOURCC_KTX10)) != 0) {
     std::cerr << "Unknown file format!" << std::endl;
     return false;
   }
   size_t offset = sizeof(FOURCC_KTX10);
-  KTXHeader const &ktx_header = *reinterpret_cast<KTXHeader const*>(buffer + offset);
+  KTXHeader const &ktx_header = *reinterpret_cast<KTXHeader const*>(src + offset);
   offset += sizeof(ktx_header);
   auto texture_format = gl::TranslateFromGL(
     ktx_header.gl_internal_format,
@@ -136,18 +134,18 @@ bool LoadKTX(const char *buffer, size_t length, CompositeImg &composite_img,
   custom_data.clear();
   int64_t kv_left = ktx_header.bytes_of_key_value_data;
   while (kv_left > 0) {
-    uint32_t kv_size = *(uint32_t*)(buffer + offset);
+    uint32_t kv_size = *(uint32_t*)(src + offset);
     offset += sizeof(uint32_t);
     uint32_t null_char_pos = 0;
-    while (null_char_pos < kv_size && *(buffer + offset + null_char_pos) != 0) {
+    while (null_char_pos < kv_size && *(src + offset + null_char_pos) != 0) {
       null_char_pos++;
     }
-    if (*(buffer + offset + null_char_pos) != 0) {
+    if (*(src + offset + null_char_pos) != 0) {
       std::cerr << "Key value data error!" << std::endl;
       return false;
     }
-    std::string key(buffer + offset, null_char_pos);
-    std::string value(buffer + offset + null_char_pos + 1, kv_size - null_char_pos - 1);
+    std::string key(src + offset, null_char_pos);
+    std::string value(src + offset + null_char_pos + 1, kv_size - null_char_pos - 1);
     custom_data.insert_or_assign(std::move(key), std::move(value));
     // read padding
     offset += ((kv_size + 3) / 4) * 4;
@@ -155,7 +153,7 @@ bool LoadKTX(const char *buffer, size_t length, CompositeImg &composite_img,
   }
   uint32_t img_data_size = length - ktx_header.bytes_of_key_value_data - sizeof(KTXHeader);
   ImgBuffer img_buf(img_data_size);
-  std::memcpy(img_buf.GetBuffer(), buffer + offset, img_data_size);
+  std::memcpy(img_buf.GetBuffer(), src + offset, img_data_size);
   if (IsCompressedFormat(texture_format)) {
     composite_img.SetBCSize(desc, std::max(ktx_header.number_of_mipmap_levels, 1u),
       std::max(ktx_header.number_of_array_elements, 1u), std::max(ktx_header.number_of_faces, 1u),

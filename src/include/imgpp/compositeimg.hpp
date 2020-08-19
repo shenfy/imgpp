@@ -1,6 +1,8 @@
 #ifndef IMGPP_COMPOSITEIMG_HPP
 #define IMGPP_COMPOSITEIMG_HPP
 
+/*! \file compositeimg.hpp */
+
 #include <vector>
 #include <variant>
 #include <imgpp/imgpp.hpp>
@@ -10,6 +12,7 @@
 
 namespace imgpp {
 
+//! CompositeImg holds images data of a texture
 class CompositeImg {
 public:
   CompositeImg() {
@@ -26,6 +29,7 @@ public:
     return tex_desc_;
   }
 
+  //! Specifies texture description, dimensions and alignment of a uncompressed texture
   void SetSize(const TextureDesc &desc, uint32_t levels, uint32_t layers, uint32_t faces,
     uint32_t width, uint32_t height, uint32_t depth, uint8_t align_bytes) {
     if (desc.format == FORMAT_UNDEFINED) {
@@ -49,6 +53,7 @@ public:
     rois_ = std::move(rois);
   }
 
+  //! Specifies texture description, dimensions and alignment of a compressed texture
   void SetBCSize(TextureDesc desc, uint32_t levels, uint32_t layers, uint32_t faces,
     uint32_t width, uint32_t height, uint32_t depth) {
     if (desc.format != FORMAT_UNDEFINED) {
@@ -63,6 +68,8 @@ public:
     }
   }
 
+
+  //! Create roi for specified dimension
   void SetData(uint8_t *data, uint32_t level, uint32_t layer, uint32_t face) {
     if (tex_desc_.format == FORMAT_UNDEFINED) {
       return;
@@ -112,7 +119,7 @@ public:
   }
 
   bool IsCompressed() const {
-    return std::holds_alternative<std::vector<BlockImgROI>>(rois_);
+    return IsCompressedFormat(tex_desc_.format);
   }
 
   uint32_t Levels() const {
@@ -132,14 +139,12 @@ public:
   }
 
 private:
-  std::vector<ImgBuffer> buffers_;
-  std::variant<std::vector<ImgROI>, std::vector<BlockImgROI>> rois_;
+  std::vector<ImgBuffer> buffers_; /*!< vector of ImgBuffers who holds img data */
+  std::variant<std::vector<ImgROI>, std::vector<BlockImgROI>> rois_; /*!< Either vector of ImgROI or BlockImgROI denpens on texture format is compressed or not */
   TextureDesc tex_desc_;
-  // mipmap levels
-  uint32_t levels_{0};
-  uint32_t layers_{0};
-  // for cubemap faces is 6, otherwise 1
-  uint32_t faces_{0};
+  uint32_t levels_{0}; /*!< mipmap levels */
+  uint32_t layers_{0}; /*!< number of textures in texture array, if not an texture array, is 1 */
+  uint32_t faces_{0}; /*!< for cubemap faces is 6, otherwise 1 */
   uint8_t align_bytes_{1};
 };
 }

@@ -1,13 +1,14 @@
 #ifndef IMGPP_IMGPP_BLOCK_HPP
 #define IMGPP_IMGPP_BLOCK_HPP
 
-/*! \file imgpp.hpp */
+/*! \file imgpp_block.hpp */
 
 #include <imgpp/imgbase.hpp>
 #include <imgpp/texturedesc.hpp>
 
 namespace imgpp {
 
+// !BlockSize is the description of single block in BlockImg
 struct BlockSize {
   uint32_t block_width {0};
   uint32_t block_height {0};
@@ -24,7 +25,9 @@ struct BlockSize {
   }
 };
 
-//! Wrapper for block-compressed images (e.g. ASTC, BC7, ETC2)
+//! BlockImgROI is a view into an ImgBuffer or a plain C-style buffer which contains img data in blocks
+
+//! BlockImgROI doesn't "own" the buffer memory, hence the user must make sure the pointer buffer_ is valid before accesing data.
 class BlockImgROI {
 public:
   friend class BlockImg;
@@ -185,6 +188,7 @@ inline bool CopyData(BlockImgROI &dst, const BlockImgROI &src) {
   return true;
 }
 
+//! BlockImg holds a 2D or 3D block image using ImgBuffer and a BlockImgROI
 class BlockImg: public ImgBase<BlockImgROI> {
 public:
   BlockImg() {}

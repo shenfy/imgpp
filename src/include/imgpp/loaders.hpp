@@ -22,7 +22,6 @@ namespace imgpp {
 
   //! \brief Load netbpm PPM format images.
   //!
-  //! Just like the loader, the writer also writes the bytes as they are to the file.
   //! \param src input buffer containing the PPM data (including the headers)
   //! \param length length of the input buffer
   //! \param img output imgpp::Img object filled with load data
@@ -118,12 +117,29 @@ namespace imgpp {
   //! \param roi imgpp::ImgROI to serialize
   bool WriteBSON(const char *fn, const ImgROI &roi);
 
-  bool LoadKTX(const char *buffer, size_t length, CompositeImg &composite_img,
+  //! \brief Load Khronos KTX1 format images.
+  //  Although https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
+  //! \param src input buffer containing the ktx data (including the headers)
+  //! \param length length of the input buffer
+  //! \param CompositeImg output imgpp::CompositeImg object filled with load data
+  //! \param custom_data output std::unordered_map<std::string, string> object filled with kv data
+  //! \param bottom_first whether the loaded image data in memory is bottom first
+  bool LoadKTX(const char *src, size_t length, CompositeImg &composite_img,
     std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 
+  //! \brief Load Khronos KTX1 format images.
+  //! \param fn ktx file full path
+  //! \param CompositeImg output imgpp::CompositeImg object filled with load data
+  //! \param custom_data output std::unordered_map<std::string, string> object filled with kv data
+  //! \param bottom_first whether the loaded image data in memory is bottom first
   bool LoadKTX(const char *fn, CompositeImg &composite_img,
     std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 
+  //! \brief Save Khronos KTX1 format images to .ktx file.
+  //! \param fn ktx file full path
+  //! \param CompositeImg input imgpp::CompositeImg object filled with load data
+  //! \param custom_data input std::unordered_map<std::string, string> object filled with kv data
+  //! \param bottom_first whether the loaded image data in memory is bottom first
   bool WriteKTX(const char *fn, const CompositeImg &composite_img,
     const std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 }

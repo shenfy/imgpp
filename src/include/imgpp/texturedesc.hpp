@@ -1,8 +1,11 @@
 #ifndef IMGPP_TEXTUREDESC_HPP
 #define IMGPP_TEXTUREDESC_HPP
 
+/*! \file texturedesc.hpp */
+
 #include <cstdint>
 namespace imgpp {
+//! \brief TextureTarget specifies target texture in graphics
 enum TextureTarget: uint8_t {
   TARGET_NONE = 0,
   TARGET_1D, TARGET_FIRST = TARGET_1D,
@@ -16,6 +19,7 @@ enum TextureTarget: uint8_t {
   TARGET_CUBE_ARRAY, TARGET_LAST = TARGET_CUBE_ARRAY
 };
 
+//! \brief TextureFormat specifies texture components, data type, usage, packed info
 enum TextureFormat: uint16_t {
   FORMAT_UNDEFINED = 0,
 
@@ -185,21 +189,10 @@ enum TextureFormat: uint16_t {
   FORMAT_RGBA_ATCI_UNORM_BLOCK16, FORMAT_BLOCK_COMPRESSION_LAST = FORMAT_RGBA_ATCI_UNORM_BLOCK16
 };
 
-// struct PixelDesc {
-//   uint32_t components;
-//   // R, G, B, A
-//   uint32_t bpcs[4];
-//   // bit per pixel
-//   uint32_t bpp;
-//   uint8_t packed_bytes;
-//   bool is_signed;
-//   bool is_float;
-// };
-
 struct TextureDesc {
   TextureFormat format{FORMAT_UNDEFINED};
   TextureTarget target{TARGET_NONE};
-  bool mipmap{false};
+  bool mipmap{false}; /*!< If original data contains mipmaps or mipmaps would be auto genenrated before texture creation  */
 };
 
 inline bool IsTarget1d(TextureTarget target) {
