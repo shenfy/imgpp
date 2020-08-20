@@ -5,7 +5,7 @@
 
 #include <tuple>
 #include <imgpp/texturedesc.hpp>
-#include <imgpp/imgpp_block.hpp>
+#include <imgpp/blockimg.hpp>
 namespace imgpp {
 
 /*! \fn const auto &GetPixelDesc(TextureFormat format)

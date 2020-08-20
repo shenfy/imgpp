@@ -6,7 +6,7 @@
 #include <vector>
 #include <variant>
 #include <imgpp/imgpp.hpp>
-#include <imgpp/imgpp_block.hpp>
+#include <imgpp/blockimg.hpp>
 #include <imgpp/texturedesc.hpp>
 #include <imgpp/texturehelper.hpp>
 
@@ -31,12 +31,12 @@ public:
 
   //! Specifies texture description, dimensions and alignment of a uncompressed texture
   void SetSize(const TextureDesc &desc, uint32_t levels, uint32_t layers, uint32_t faces,
-    uint32_t width, uint32_t height, uint32_t depth, uint8_t align_bytes) {
+    uint32_t width, uint32_t height, uint32_t depth, uint8_t alignment) {
     if (desc.format == FORMAT_UNDEFINED) {
       return;
     }
     const auto& pixel_desc = GetPixelDesc(desc.format);
-    if (align_bytes % std::get<2>(pixel_desc) != 0) {
+    if (alignment % std::get<2>(pixel_desc) != 0) {
       return;
     }
     tex_desc_ = desc;
@@ -45,9 +45,9 @@ public:
     levels_ = levels;
     layers_ = layers;
     faces_ = faces;
-    align_bytes_ = align_bytes;
+    alignment_ = alignment;
     std::vector<ImgROI> rois(levels * layers * faces);
-    uint32_t pitch = ImgROI::CalcPitch(width, c, bpc, align_bytes);
+    uint32_t pitch = ImgROI::CalcPitch(width, c, bpc, alignment);
     rois[0] = ImgROI(nullptr, width, height, depth, c, bpc,
       pitch, pitch * height, std::get<3>(pixel_desc), std::get<4>(pixel_desc));
     rois_ = std::move(rois);
@@ -86,7 +86,7 @@ public:
       uint32_t width = std::max(rois[0].Width() >> level, 1u);
       uint32_t height = std::max(rois[0].Height() >> level, 1u);
       uint32_t depth = std::max(rois[0].Depth() >> level, 1u);
-      uint32_t pitch = ImgROI::CalcPitch(width, rois[0].Channel(), rois[0].BPC(), align_bytes_);
+      uint32_t pitch = ImgROI::CalcPitch(width, rois[0].Channel(), rois[0].BPC(), alignment_);
       rois[level * layers_ * faces_ + layer * faces_ + face] =
         ImgROI(data, width, height, depth,
           rois[0].Channel(), rois[0].BPC(), pitch, pitch * height,
@@ -134,8 +134,8 @@ public:
     return faces_;
   }
 
-  uint32_t AlignBytes() const {
-    return align_bytes_;
+  uint32_t Alignment() const {
+    return alignment_;
   }
 
 private:
@@ -145,7 +145,7 @@ private:
   uint32_t levels_{0}; /*!< mipmap levels */
   uint32_t layers_{0}; /*!< number of textures in texture array, if not an texture array, is 1 */
   uint32_t faces_{0}; /*!< for cubemap faces is 6, otherwise 1 */
-  uint8_t align_bytes_{1};
+  uint8_t alignment_{1};
 };
 }
 #endif

@@ -18,8 +18,8 @@ set(IMGPP_HEADER
   include/imgpp/texturehelper.hpp
   include/imgpp/glhelper.hpp
   include/imgpp/imgbase.hpp
-  include/imgpp/imgpp_block.hpp
   include/imgpp/imgpp.hpp
+  include/imgpp/blockimg.hpp
   include/imgpp/compositeimg.hpp
   include/imgpp/loadersext.hpp
   include/imgpp/loaders.hpp

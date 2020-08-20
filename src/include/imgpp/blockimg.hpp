@@ -1,7 +1,7 @@
-#ifndef IMGPP_IMGPP_BLOCK_HPP
-#define IMGPP_IMGPP_BLOCK_HPP
+#ifndef IMGPP_BLOCKIMG_HPP
+#define IMGPP_BLOCKIMG_HPP
 
-/*! \file imgpp_block.hpp */
+/*! \file blockimg.hpp */
 
 #include <imgpp/imgbase.hpp>
 #include <imgpp/texturedesc.hpp>
@@ -20,8 +20,7 @@ struct BlockSize {
   }
 
   bool operator!=(const BlockSize &other) const {
-    return block_width != other.block_width || block_height != other.block_height
-      || block_bytes != other.block_bytes;
+    return !this->operator==(other);
   }
 };
 
@@ -132,7 +131,7 @@ public:
     return data_;
   }
 
-  static const uint32_t CalcPitch(const BlockSize &block_size, uint32_t w) {
+  static uint32_t CalcPitch(const BlockSize &block_size, uint32_t w) {
     if (block_size.block_bytes == 0) {
       return 0;
     }

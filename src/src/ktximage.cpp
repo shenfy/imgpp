@@ -59,7 +59,7 @@ uint32_t CalcFaceSize(const CompositeImg &composite_img, uint32_t level) {
     face_size = block_roi.SlicePitch() * block_roi.Depth();
   } else {
     const ImgROI &roi = composite_img.ROI(level, 0, 0);
-    if (composite_img.AlignBytes() % KTX_ALIGNMENT == 0) {
+    if (composite_img.Alignment() % KTX_ALIGNMENT == 0) {
       face_size = roi.SlicePitch() * roi.Depth();
     } else {
       face_size = 4 * ((roi.Pitch() + 3 ) / 4) * roi.Height() * roi.Depth();
@@ -382,7 +382,7 @@ bool WriteKTX(const char *fn, const CompositeImg &composite_img,
       }
     }
   } else {
-    if (composite_img.AlignBytes() % KTX_ALIGNMENT == 0) {
+    if (composite_img.Alignment() % KTX_ALIGNMENT == 0) {
       for (uint32_t level = 0; level < composite_img.Levels(); ++level) {
         uint32_t &img_size = *reinterpret_cast<uint32_t*>(data.data() + offset);
         img_size = 0;
