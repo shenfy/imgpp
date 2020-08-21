@@ -10,7 +10,10 @@
 namespace {
 using namespace imgpp;
 
-const uint8_t KTX_ALIGNMENT = 4;
+enum : uint8_t {
+  KTX_ALIGNMENT = 4
+};
+
 static unsigned char const FOURCC_KTX10[] = {
   0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A};
 struct KTXHeader {

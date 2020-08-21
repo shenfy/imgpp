@@ -9,7 +9,7 @@
 
 
 // texture array, img on layer1 equals 255 - img on layer0
-const char *fn = "test.ktx";
+static const char *fn = "test.ktx";
 using namespace imgpp;
 bool Check(const imgpp::CompositeImg &img, const std::unordered_map<std::string, std::string> &kv_data) {
   if (kv_data.size() != 1) {
