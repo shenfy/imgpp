@@ -63,5 +63,9 @@ target_link_libraries(loadertest PRIVATE imgpp)
 add_test(loaders loadertest)
 
 add_executable(ktxloadertest src/ktxloadertest.cpp)
+add_custom_command(
+  TARGET ktxloadertest
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.ktx ${CMAKE_CURRENT_BINARY_DIR}/
+  COMMENT "Copy test ktx image to build folder")
 target_link_libraries(ktxloadertest PRIVATE imgpp)
 add_test(ktxloaders ktxloadertest)
