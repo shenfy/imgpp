@@ -1,5 +1,5 @@
 #include <imgpp/imgpp.hpp>
-#include <imgpp/imgpp_bc.hpp>
+#include <imgpp/blockimg.hpp>
 #include <imgpp/loaders.hpp>
 #include <imgpp/loadersext.hpp>
 #include <string>

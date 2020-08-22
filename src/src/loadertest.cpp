@@ -8,7 +8,7 @@
 // this image has four pixels in 2x2 grid:
 // black white
 // white black
-const char *input_fn = "checkboard";
+static const char *input_fn = "checkboard";
 
 bool CheckImg(const imgpp::ImgROI &roi, bool bottom_first) {
   // check metadata

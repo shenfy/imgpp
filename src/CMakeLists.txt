@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.0 LANGUAGES CXX)
+project(imgpp VERSION 2.1.1 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -15,10 +15,12 @@ find_package(PNG REQUIRED)
 set(IMGPP_HEADER
   include/imgpp/algorithms.hpp
   include/imgpp/texturedesc.hpp
+  include/imgpp/texturehelper.hpp
   include/imgpp/glhelper.hpp
   include/imgpp/imgbase.hpp
-  include/imgpp/imgpp_bc.hpp
   include/imgpp/imgpp.hpp
+  include/imgpp/blockimg.hpp
+  include/imgpp/compositeimg.hpp
   include/imgpp/loadersext.hpp
   include/imgpp/loaders.hpp
   include/imgpp/opencvbinding.hpp
@@ -61,5 +63,9 @@ target_link_libraries(loadertest PRIVATE imgpp)
 add_test(loaders loadertest)
 
 add_executable(ktxloadertest src/ktxloadertest.cpp)
+add_custom_command(
+  TARGET ktxloadertest
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.ktx ${CMAKE_CURRENT_BINARY_DIR}/
+  COMMENT "Copy test ktx image to build folder")
 target_link_libraries(ktxloadertest PRIVATE imgpp)
 add_test(ktxloaders ktxloadertest)

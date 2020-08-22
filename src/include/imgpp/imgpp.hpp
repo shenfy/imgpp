@@ -64,20 +64,16 @@ namespace imgpp {
       return new_roi;
     }
 
-    //! Pitch calculator.
+    //! \brief Pitch calculator.
     //! \param w the width of the region.
     //! \param c the number of channels the image has
     //! \param bpc bit-depth (bits per channel, NOT bytes!)
-    //! \param align_bytes memory alignment of the starts of each row (e.g. BMPs are aligned to 4 bytes).
+    //! \param alignment memory alignment of the starts of each row (e.g. BMPs are aligned to 4 bytes).
     //! 0 or 1 means no alignment (or aligned to bytes).
-    static const uint32_t CalcPitch(
+    static uint32_t CalcPitch(
       uint32_t w, uint32_t c, uint32_t bpc,
-      uint8_t align_bytes = 1) {
-      if (align_bytes) {
-        return (((c * bpc * w) >> 3) + (align_bytes - 1)) / align_bytes * align_bytes;
-      } else {
-        return (c * bpc * w) >> 3;
-      }
+      uint8_t alignment = 1) {
+      return (((c * bpc * w) >> 3) + (alignment - 1)) / alignment * alignment;
     }
 
     //! \brief 2D Accessor. Returns a reference to the pixel channel.
@@ -266,22 +262,22 @@ namespace imgpp {
     Img() {}
     ~Img() {}
     Img(uint32_t w, uint32_t h, uint32_t depth, uint32_t c, uint32_t bpc,
-      bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1) {
-      SetSize(w, h, depth, c, bpc, is_float, is_signed, align_bytes);
+      bool is_float = false, bool is_signed = false, uint8_t alignment = 1) {
+      SetSize(w, h, depth, c, bpc, is_float, is_signed, alignment);
     }
 
     Img(uint32_t w, uint32_t h, uint32_t c, uint32_t bpc,
-      bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1)
-      : Img(w, h, 1, c, bpc, is_float, is_signed, align_bytes) {}
+      bool is_float = false, bool is_signed = false, uint8_t alignment = 1)
+      : Img(w, h, 1, c, bpc, is_float, is_signed, alignment) {}
 
     //! Allocates memory and creates an ROI for the entire image.
     void SetSize(uint32_t w, uint32_t h, uint32_t depth,
       uint32_t c, uint32_t bpc,
-      bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1) {
+      bool is_float = false, bool is_signed = false, uint8_t alignment = 1) {
       if (w == 0 || h == 0 || depth == 0 || c == 0 || bpc == 0) {
         return;
       }
-      uint32_t pitch = ImgROI::CalcPitch(w, c, bpc, align_bytes);
+      uint32_t pitch = ImgROI::CalcPitch(w, c, bpc, alignment);
       uint32_t slice_pitch = pitch * h;
       buffer_.SetSize(slice_pitch * depth);
       entire_img_ = ImgROI(buffer_.GetBuffer(), w, h,
@@ -290,9 +286,9 @@ namespace imgpp {
 
     //! Allocates memory and creates an ROI for the entire image,
     //! based on the size of a source ROI, ignoring the source's pitch and alignment
-    void SetSizeLike(const ImgROI &src_roi, uint8_t align_bytes = 1) {
+    void SetSizeLike(const ImgROI &src_roi, uint8_t alignment = 1) {
       SetSize(src_roi.width_, src_roi.height_, src_roi.depth_, src_roi.channel_, src_roi.bpc_,
-        src_roi.is_float_, src_roi.is_signed_, align_bytes);
+        src_roi.is_float_, src_roi.is_signed_, alignment);
     }
 
     //! Change the shape of the image without modifying the pixel data.
@@ -302,11 +298,11 @@ namespace imgpp {
     //! \param depth the new depth.
     //! \param c the new channel number.
     //! \param bpc the new bit-depth.
-    //! \param align_bytes the new memory align bytes of scan-lines. Defaults to 1 (no alignment).
+    //! \param alignment the new memory alignment of scan-lines. Defaults to 1 (no alignment).
     //! \return true if succeeded, false if dimension don't match.
     bool ReShape(uint32_t w, uint32_t h, uint32_t depth,
-      uint32_t c, uint32_t bpc, uint8_t align_bytes = 1) {
-      uint32_t new_pitch = ImgROI::CalcPitch(w, c, bpc, align_bytes);
+      uint32_t c, uint32_t bpc, uint8_t alignment = 1) {
+      uint32_t new_pitch = ImgROI::CalcPitch(w, c, bpc, alignment);
       if (new_pitch * h * depth != buffer_.GetLength()) {  //doesn't match original size
         return false;
       }
@@ -322,15 +318,15 @@ namespace imgpp {
     }
 
     //! Deep copy from an ROI, ignoring the original pitch and alignment
-    bool CopyFrom(const ImgROI &src_roi, uint8_t align_bytes = 1) {
-      SetSizeLike(src_roi, align_bytes);
+    bool CopyFrom(const ImgROI &src_roi, uint8_t alignment = 1) {
+      SetSizeLike(src_roi, alignment);
       return CopyData(entire_img_, src_roi);
     }
   };
 
   inline Img Zeros(uint32_t w, uint32_t h, uint32_t depth, uint32_t c, uint32_t bpc,
-    bool is_float = false, bool is_signed = false, uint8_t align_bytes = 1) {
-    Img result(w, h, depth, c, bpc, is_float, is_signed, align_bytes);
+    bool is_float = false, bool is_signed = false, uint8_t alignment = 1) {
+    Img result(w, h, depth, c, bpc, is_float, is_signed, alignment);
     result.Zeros();
     return result;
   }
