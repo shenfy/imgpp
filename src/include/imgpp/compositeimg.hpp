@@ -12,33 +12,42 @@
 
 namespace imgpp {
 
-//! CompositeImg holds images data of a texture
+//! \brief Wrapper class for multiple levels/layers/faces image data of a texture
 class CompositeImg {
 public:
-  CompositeImg() {
-  }
+  CompositeImg() = default;
 
-  ~CompositeImg() {
-  }
+  ~CompositeImg() = default;
 
+  //! \brief Get metadata of the composite image including format, target and if mipmap is requested.
   const TextureDesc &TexDesc() const {
     return tex_desc_;
   }
 
+  //! \brief Get metadata of the composite image including format, target and if mipmap is requested.
   TextureDesc &TexDesc() {
     return tex_desc_;
   }
 
-  //! Specifies texture description, dimensions and alignment of a uncompressed texture
+  //! \brief Specifies texture description, dimensions and alignment of a uncompressed texture.
+  //! \param desc specify texture format and usage
+  //! \param levels number of mipmap levels
+  //! \param layers number of images in an image array
+  //! \param faces number of faces in a layer (e.g. 6 for cubemap)
+  //! \param width width of a single face
+  //! \param height height of a single face
+  //! \param depth of a single face (1 for 2D textures)
+  //! \param alignment byte alignment of each row/scanline
   void SetSize(const TextureDesc &desc, uint32_t levels, uint32_t layers, uint32_t faces,
     uint32_t width, uint32_t height, uint32_t depth, uint8_t alignment) {
     if (desc.format == FORMAT_UNDEFINED) {
       return;
     }
-    const auto& pixel_desc = GetPixelDesc(desc.format);
+    auto& pixel_desc = GetPixelDesc(desc.format);
     if (alignment % std::get<2>(pixel_desc) != 0) {
       return;
     }
+
     tex_desc_ = desc;
     uint32_t bpc = std::get<1>(pixel_desc);
     uint32_t c = std::get<0>(pixel_desc);
@@ -53,7 +62,14 @@ public:
     rois_ = std::move(rois);
   }
 
-  //! Specifies texture description, dimensions and alignment of a compressed texture
+  //! \brief Specifies texture description, dimensions and alignment of a compressed texture.
+  //! \param desc specify texture format and usage
+  //! \param levels number of mipmap levels
+  //! \param layers number of images in an image array
+  //! \param faces number of faces in a layer (e.g. 6 for cubemap)
+  //! \param width width of a single face
+  //! \param height height of a single face
+  //! \param depth of a single face (1 for 2D textures)
   void SetBCSize(TextureDesc desc, uint32_t levels, uint32_t layers, uint32_t faces,
     uint32_t width, uint32_t height, uint32_t depth) {
     if (desc.format != FORMAT_UNDEFINED) {
@@ -69,20 +85,24 @@ public:
   }
 
 
-  //! Create roi for specified dimension
+  //! \brief Create roi for specified dimension.
+  //! \param data a data pointer to the source where the ROI refers to
+  //! \param level mipmap level
+  //! \param layer array index
+  //! \param face face index
   void SetData(uint8_t *data, uint32_t level, uint32_t layer, uint32_t face) {
     if (tex_desc_.format == FORMAT_UNDEFINED) {
       return;
     }
     if (IsCompressed()) {
-      std::vector<BlockImgROI> &rois = std::get<std::vector<BlockImgROI>>(rois_);
+      auto &rois = std::get<std::vector<BlockImgROI>>(rois_);
       uint32_t width = std::max(rois[0].Width() >> level, 1u);
       uint32_t height = std::max(rois[0].Height() >> level, 1u);
       uint32_t depth = std::max(rois[0].Depth() >> level, 1u);
       rois[level * layers_ * faces_ + layer * faces_ + face] =
         BlockImgROI(data, rois[0].BlkSize(), width, height, depth);
     } else {
-      std::vector<ImgROI> &rois = std::get<std::vector<ImgROI>>(rois_);
+      auto &rois = std::get<std::vector<ImgROI>>(rois_);
       uint32_t width = std::max(rois[0].Width() >> level, 1u);
       uint32_t height = std::max(rois[0].Height() >> level, 1u);
       uint32_t depth = std::max(rois[0].Depth() >> level, 1u);
@@ -94,6 +114,8 @@ public:
     }
   }
 
+  //! \brief Add an image buffer to be held inside the CompositeImg.
+  //! \param buffer an ImgBuffer class holding actual image data
   void AddBuffer(imgpp::ImgBuffer buffer) {
     buffers_.push_back(std::move(buffer));
   }
@@ -102,18 +124,22 @@ public:
     return buffers_;
   }
 
+  //! \brief Get a const ROI associated to the specific level/layer/face
   const ImgROI &ROI(uint32_t level, uint32_t layer, uint32_t face) const {
     return std::get<std::vector<ImgROI>>(rois_)[level * layers_ * faces_ + layer * faces_ + face];
   }
 
+  //! \brief Get the ROI associated to the specific level/layer/face
   ImgROI &ROI(uint32_t level, uint32_t layer, uint32_t face) {
     return std::get<std::vector<ImgROI>>(rois_)[level * layers_ * faces_ + layer * faces_ + face];
   }
 
+  //! \brief Get a const BlockROI associated to the specific level/layer/face
   const BlockImgROI &BlockROI(uint32_t level, uint32_t layer, uint32_t face) const {
     return std::get<std::vector<BlockImgROI>>(rois_)[level * layers_ * faces_ + layer * faces_ + face];
   }
 
+  //! \brief Get the BlockROI associated to the specific level/layer/face
   BlockImgROI &BlockROI(uint32_t level, uint32_t layer, uint32_t face) {
     return std::get<std::vector<BlockImgROI>>(rois_)[level * layers_ * faces_ + layer * faces_ + face];
   }
@@ -139,12 +165,12 @@ public:
   }
 
 private:
-  std::vector<ImgBuffer> buffers_; /*!< vector of ImgBuffers who holds img data */
-  std::variant<std::vector<ImgROI>, std::vector<BlockImgROI>> rois_; /*!< Either vector of ImgROI or BlockImgROI denpens on texture format is compressed or not */
+  std::vector<ImgBuffer> buffers_; /*!< a vector of ImgBuffers holding img data */
+  std::variant<std::vector<ImgROI>, std::vector<BlockImgROI>> rois_; /*!< a vector of either ImgROI or BlockImgROI depends on texture format */
   TextureDesc tex_desc_;
   uint32_t levels_{0}; /*!< mipmap levels */
-  uint32_t layers_{0}; /*!< number of textures in texture array, if not an texture array, is 1 */
-  uint32_t faces_{0}; /*!< for cubemap faces is 6, otherwise 1 */
+  uint32_t layers_{0}; /*!< number of textures in texture array, or equals 1 if not a texture array */
+  uint32_t faces_{0}; /*!< 6 for cubemap faces, otherwise 1 */
   uint8_t alignment_{1};
 };
 }

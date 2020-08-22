@@ -64,7 +64,7 @@ namespace imgpp {
       return new_roi;
     }
 
-    //! Pitch calculator.
+    //! \brief Pitch calculator.
     //! \param w the width of the region.
     //! \param c the number of channels the image has
     //! \param bpc bit-depth (bits per channel, NOT bytes!)

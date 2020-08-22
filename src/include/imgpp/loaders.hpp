@@ -124,7 +124,7 @@ namespace imgpp {
   //! \param CompositeImg output imgpp::CompositeImg object filled with load data
   //! \param custom_data output std::unordered_map<std::string, string> object filled with kv data
   //! \param bottom_first whether the loaded image data in memory is bottom first
-  bool LoadKTX(const char *src, size_t length, CompositeImg &composite_img,
+  bool LoadKTX(const char *src, size_t length, CompositeImg &img,
     std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 
   //! \brief Load Khronos KTX1 format images.
@@ -132,7 +132,7 @@ namespace imgpp {
   //! \param CompositeImg output imgpp::CompositeImg object filled with load data
   //! \param custom_data output std::unordered_map<std::string, string> object filled with kv data
   //! \param bottom_first whether the loaded image data in memory is bottom first
-  bool LoadKTX(const char *fn, CompositeImg &composite_img,
+  bool LoadKTX(const char *fn, CompositeImg &img,
     std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 
   //! \brief Save Khronos KTX1 format images to .ktx file.
@@ -140,7 +140,7 @@ namespace imgpp {
   //! \param CompositeImg input imgpp::CompositeImg object filled with load data
   //! \param custom_data input std::unordered_map<std::string, string> object filled with kv data
   //! \param bottom_first whether the loaded image data in memory is bottom first
-  bool WriteKTX(const char *fn, const CompositeImg &composite_img,
+  bool WriteKTX(const char *fn, const CompositeImg &img,
     const std::unordered_map<std::string, std::string> &custom_data, bool bottom_first);
 }
 

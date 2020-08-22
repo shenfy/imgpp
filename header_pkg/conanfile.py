@@ -15,12 +15,13 @@ class ImgppHeaderConan(ConanFile):
 
     def package(self):
         self.copy("imgpp/algorithms.hpp", dst="include/")
-        self.copy("imgpp/bchelper.hpp", dst="include/")
         self.copy("imgpp/imgpp.hpp", dst="include/")
-        self.copy("imgpp/bcdesc.hpp", dst="include/")
         self.copy("imgpp/imgbase.hpp", dst="include/")
-        self.copy("imgpp/imgpp_bc.hpp", dst="include/")
         self.copy("imgpp/sampler.hpp", dst="include/")
+        self.copy("imgpp/blockimg.hpp", dst="include/")
+        self.copy("imgpp/compositeimg.hpp", dst="include/")
+        self.copy("imgpp/texturedesc.hpp", dst="include/")
+        self.copy("imgpp/texturehelper.hpp", dst="include/")
 
     def package_id(self):
         self.info.header_only()
