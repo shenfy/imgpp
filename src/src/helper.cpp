@@ -47,6 +47,20 @@ bool IsBMPFormat(const char *buffer) {
   return false;
 }
 
+bool IsPFMFormat(const char *buffer) {
+  if (buffer[0] == 'P' && (buffer[1] == 'f' || buffer[1] == 'F')) {
+    return true;
+  }
+  return false;
+}
+
+bool IsPPMFormat(const char *buffer) {
+  if (buffer[0] == 'P' && (buffer[1] == '5' || buffer[1] == '6')) {
+    return true;
+  }
+  return false;
+}
+
 }
 
 namespace imgpp {
@@ -101,6 +115,10 @@ bool Load(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
     return LoadJPEG(buffer, length, img, bottom_first);
   } else if (IsPNGFormat(buffer)) {
     return LoadPNG(const_cast<char *>(buffer), length, img, bottom_first);
+  } else if (IsPFMFormat(buffer)) {
+    return LoadPFM(buffer, length, img, bottom_first);
+  } else if (IsPPMFormat(buffer)) {
+    return LoadPPM(buffer, length, img, bottom_first);
   } else {
     return false;
   }
