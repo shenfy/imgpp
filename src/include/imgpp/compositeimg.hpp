@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <variant>
+#include <algorithm>
 #include <imgpp/imgpp.hpp>
 #include <imgpp/blockimg.hpp>
 #include <imgpp/texturedesc.hpp>
