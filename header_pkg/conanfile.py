@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class ImgppHeaderConan(ConanFile):
     name = "imgpp_headers"
-    version = "2.1.2"
+    version = "2.1.3"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"
@@ -22,6 +22,8 @@ class ImgppHeaderConan(ConanFile):
         self.copy("imgpp/compositeimg.hpp", dst="include/")
         self.copy("imgpp/texturedesc.hpp", dst="include/")
         self.copy("imgpp/texturehelper.hpp", dst="include/")
+        self.copy("imgpp/typetraits.hpp", dst="include/")
+        self.copy("imgpp/glmtraits.hpp", dst="include/")
 
     def package_id(self):
         self.info.header_only()

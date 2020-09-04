@@ -2,6 +2,7 @@
 #include <imgpp/blockimg.hpp>
 #include <imgpp/loaders.hpp>
 #include <imgpp/loadersext.hpp>
+#include <imgpp/sampler.hpp>
 #include <string>
 #include <iostream>
 
@@ -25,6 +26,9 @@ int main(int argc, char *argv[]) {
         std::cerr << "checking png value failed!" << std::endl;
         return 1;
       }
+
+      auto color = imgpp::Tex2DBilinear<uint8_t>(
+        img.ROI(), pos[idx * 2] + .5f, pos[idx * 2 + 1] + .5f);
     }
   }
 
