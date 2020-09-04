@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include "imgpp.hpp"
+#include "typetraits.hpp"
 
 namespace imgpp {
 
@@ -27,9 +28,11 @@ T Tex2DBilinear(const ImgROI &roi, float x, float y) {
   auto val_u1 = roi.At<T>(u1, v0);
   auto val_u2 = roi.At<T>(u0, v1);
   auto val_u3 = roi.At<T>(u1, v1);
-  auto val_uv0 = val_u0 * (1.0f - u) + val_u1 * u;
-  auto val_uv1 = val_u2 * (1.0f - u) + val_u3 * u;
-  return val_uv0 * (1.0f - v) + val_uv1 * v;
+  auto val_uv0 = static_cast<typename Interpolatable<T>::type>(val_u0) * (1.0f - u)
+    + static_cast<typename Interpolatable<T>::type>(val_u1) * u;
+  auto val_uv1 = static_cast<typename Interpolatable<T>::type>(val_u2) * (1.0f - u)
+    + static_cast<typename Interpolatable<T>::type>(val_u3) * u;
+  return static_cast<T>(val_uv0 * (1.0f - v) + val_uv1 * v);
 }
 
 } //namespace imgpp

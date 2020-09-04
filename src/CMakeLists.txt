@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.2 LANGUAGES CXX)
+project(imgpp VERSION 2.1.3 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -24,7 +24,9 @@ set(IMGPP_HEADER
   include/imgpp/loadersext.hpp
   include/imgpp/loaders.hpp
   include/imgpp/opencvbinding.hpp
-  include/imgpp/sampler.hpp)
+  include/imgpp/sampler.hpp
+  include/imgpp/typetraits.hpp
+  include/imgpp/glmtraits.hpp)
 
 # static library
 add_library(imgpp STATIC)
