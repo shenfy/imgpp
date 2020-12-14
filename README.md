@@ -59,6 +59,22 @@ $ make -j4
 $ make install
 ```
 
+### Build from source for iOS w/ Conan
+1. `conan profile new ios`.
+2. Edit `~/.conan/profiles/ios` as following.
+```text
+include(default)
+[settings]
+os=iOS
+os.version=12.0
+arch=armv8
+[options]
+[build_requires]
+darwin-toolchain/1.0.8@theodelrieu/stable
+[env]
+```
+3. `conan create --profile ios -o no_ext_libs=True . shenfy/testing`.
+
 ## Usage
 Include imgpp/imgpp.hpp if you need a wrapper for uncompressed regular images:
 ```c++
