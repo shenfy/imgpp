@@ -1,9 +1,9 @@
 from conans import ConanFile, CMake, tools
-
+import os
 
 class ImgppConan(ConanFile):
     name = "imgpp"
-    version = "2.1.4"
+    version = "2.1.5"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"
@@ -16,17 +16,22 @@ class ImgppConan(ConanFile):
     exports_sources = "src/*"
 
     def build(self):
-        cmake = CMake(self)
-        if self.options.no_ext_libs:
-          cmake.definitions["IMGPP_NO_EXT_LIBS"] = True
-        cmake.configure(source_folder="src")
+        cmake = self._configure()
         cmake.build()
 
-    def package(self):
+    def _configure(self):
         cmake = CMake(self)
         if self.options.no_ext_libs:
           cmake.definitions["IMGPP_NO_EXT_LIBS"] = True
+        if self.settings.os == 'Android':
+            if 'NDK' in os.environ:
+                cmake.definitions['CMAKE_TOOLCHAIN_FILE'] = os.environ['NDK']
+            cmake.definitions['ANDROID_STL'] = 'c++_static'
         cmake.configure(source_folder="src")
+        return cmake
+
+    def package(self):
+        cmake = self._configure()
         cmake.install()
 
     def package_info(self):
