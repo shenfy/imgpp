@@ -13,6 +13,7 @@ namespace imgpp {
   public:
     //! Give access to member variables only to the class Img for operations like Reshape()
     friend class Img;
+    friend class ImgBase<ImgROI>;
 
     //! Default constructor creating an empty region with buffer_ pointing to NULL.
     ImgROI() :
@@ -260,6 +261,7 @@ namespace imgpp {
   class Img: public ImgBase<ImgROI> {
   public:
     Img() {}
+    Img(ImgBase base): ImgBase(std::move(base)) {}
     ~Img() {}
     Img(uint32_t w, uint32_t h, uint32_t depth, uint32_t c, uint32_t bpc,
       bool is_float = false, bool is_signed = false, uint8_t alignment = 1) {
@@ -315,6 +317,11 @@ namespace imgpp {
       entire_img_.pitch_ = new_pitch;
       entire_img_.slice_pitch_ = new_pitch * h;
       return true;
+    }
+
+    //! \brief Create a deep copy of the current Img
+    Img Clone() const {
+      return ImgBase::Clone();
     }
 
     //! Deep copy from an ROI, ignoring the original pitch and alignment
