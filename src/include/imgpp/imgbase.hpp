@@ -100,7 +100,7 @@ public:
   }
 
   //! \brief Create a deep copy of the current Img
-  ImgBase<TROI> Clone() {
+  ImgBase<TROI> Clone() const {
     ImgBase<TROI> result;
     result.CopyFrom(*this);
     return result;

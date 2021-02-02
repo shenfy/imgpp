@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.5 LANGUAGES CXX)
+project(imgpp VERSION 2.1.6 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
@@ -76,6 +76,10 @@ if (NOT DEFINED IMGPP_NO_EXT_LIBS)
   target_link_libraries(loadertest PRIVATE imgpp)
   add_test(loaders loadertest)
 endif()
+
+add_executable(clonetest src/clonetest.cpp)
+target_link_libraries(clonetest PRIVATE imgpp)
+add_test(clone clonetest)
 
 add_executable(ktxloadertest src/ktxloadertest.cpp)
 add_custom_command(
