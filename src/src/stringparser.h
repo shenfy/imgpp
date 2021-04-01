@@ -23,26 +23,26 @@ inline void SkipWhitespaces(std::istream &is) {
   }
 }
 
-inline void SkipCommentsAndWhitespace(std::istream &is) {
-  // comments must be in front of whitespaces
+inline void SkipCommentsAndWhitespaces(std::istream &is) {
   do {
     auto next_char = is.peek();
     if (next_char == '#') {  // is comment
       std::string tmp_str;
       std::getline(is, tmp_str);
-    } else if (std::isspace(next_char)) {  // only one whitespace allowed
+    } else if (std::isspace(next_char)) {
       is.get();
+    } else {
       break;
     }
   } while (true);
 }
 
-inline std::string GetToken(std::istream &is, bool skip_whitespaces, char extra_delim = -1) {
+inline std::string GetToken(std::istream &is, bool skip_comments_and_whitespaces, char extra_delim = -1) {
   std::string token;
   char next_char = 0;
 
-  if (skip_whitespaces) {
-    SkipWhitespaces(is);
+  if (skip_comments_and_whitespaces) {
+    SkipCommentsAndWhitespaces(is);
   }
 
   if (!is.good()) {
@@ -83,8 +83,7 @@ inline const char *SkipWhitespaces(const char *p, const char *p_end) {
   return p_out;
 }
 
-inline const char *SkipCommentsAndWhitespace(const char *p, const char *p_end) {
-  // comments must be in front of whitespaces
+inline const char *SkipCommentsAndWhitespaces(const char *p, const char *p_end) {
   const char *p_out = p;
 
   do {
@@ -98,6 +97,7 @@ inline const char *SkipCommentsAndWhitespace(const char *p, const char *p_end) {
       }
     } else if (std::isspace(cur_char)) {
       p_out++;
+    } else {
       break;
     }
   } while (true);
@@ -110,11 +110,11 @@ inline const char *SkipCommentsAndWhitespace(const char *p, const char *p_end) {
 }
 
 inline const char *GetToken(const char *p, const char *p_end,
-  bool skip_whitespaces, char extra_delim, std::string &token) {
+  bool skip_comments_and_whitespaces, char extra_delim, std::string &token) {
 
   const char *p_out = p;
-  if (skip_whitespaces) {
-    p_out = SkipWhitespaces(p_out, p_end);
+  if (skip_comments_and_whitespaces) {
+    p_out = SkipCommentsAndWhitespaces(p_out, p_end);
   }
 
   if (p_out >= p_end) {

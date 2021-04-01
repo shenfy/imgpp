@@ -47,7 +47,7 @@ bool ParseHeader(std::istream &is, int32_t &w, int32_t &h, int &channels) {
   }
   float scale = std::stof(token);
 
-  parser::SkipCommentsAndWhitespace(is);
+  parser::SkipCommentsAndWhitespaces(is);
 
   return true;
 }
@@ -98,7 +98,7 @@ const char* ParseHeader(const char *buffer, uint32_t length,
   }
   float scale = std::stof(token);
 
-  p = parser::SkipCommentsAndWhitespace(p, p_end);
+  p = parser::SkipCommentsAndWhitespaces(p, p_end);
 
   return p;
 }
@@ -180,7 +180,7 @@ bool LoadPFM(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
     }
   }
 
-  return true;
+  return p <= buffer + length;
 }
 
 bool WritePFM(const char *fn, const ImgROI &roi, bool bottom_first) {
@@ -220,7 +220,7 @@ bool WritePFM(const char *fn, const ImgROI &roi, bool bottom_first) {
   }
 
   outfile.close();
-  return true;
+  return outfile.good();
 }
 
 }
