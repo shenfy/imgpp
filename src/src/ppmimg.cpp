@@ -48,7 +48,7 @@ bool ParseHeader(std::istream &is, int &width, int &height, int &channel, int &b
   }
   bit_depth = (bit_depth + 7) >> 3 << 3;
 
-  parser::SkipCommentsAndWhitespace(is);
+  parser::SkipCommentsAndWhitespaces(is);
 
   return true;
 }
@@ -99,7 +99,7 @@ const char *ParseHeader(const char *buffer, uint32_t length,
   }
   bit_depth = (bit_depth + 7) >> 3 << 3;
 
-  p = parser::SkipCommentsAndWhitespace(p, p_end);
+  p = parser::SkipCommentsAndWhitespaces(p, p_end);
 
   return p;
 }
@@ -143,7 +143,7 @@ bool LoadPPM(const char *fn, Img &img, bool bottom_first) {
   }
 
   infile.close();
-  return true;
+  return infile.good();
 }
 
 bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
@@ -178,7 +178,7 @@ bool LoadPPM(const char *buffer, uint32_t length, Img &img, bool bottom_first) {
     }
   }
 
-  return true;
+  return p <= buffer + length;
 }
 
 bool WritePPM(const char *fn, const ImgROI &roi, bool bottom_first) {
@@ -219,7 +219,7 @@ bool WritePPM(const char *fn, const ImgROI &roi, bool bottom_first) {
     }
   }
   outfile.close();
-  return true;
+  return outfile.good();
 }
 
 }
