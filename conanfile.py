@@ -3,7 +3,7 @@ import os
 
 class ImgppConan(ConanFile):
     name = "imgpp"
-    version = "2.1.6"
+    version = "2.1.7"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"

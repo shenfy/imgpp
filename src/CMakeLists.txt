@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.6 LANGUAGES CXX)
+project(imgpp VERSION 2.1.7 LANGUAGES CXX)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
