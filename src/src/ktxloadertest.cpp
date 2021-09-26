@@ -9,9 +9,10 @@
 
 
 // texture array, img on layer1 equals 255 - img on layer0
-static const char *fn = "test.ktx";
+static const char *kRGBFn = "test.ktx";
+static const char *kASTC8x8Fn = "astc8x8.ktx";
 using namespace imgpp;
-bool Check(const imgpp::CompositeImg &img, const std::unordered_map<std::string, std::string> &kv_data) {
+bool CheckKV(const std::unordered_map<std::string, std::string> &kv_data) {
   if (kv_data.size() != 1) {
     std::cerr << "kv data size error!" << std::endl;
     return false;
@@ -25,9 +26,16 @@ bool Check(const imgpp::CompositeImg &img, const std::unordered_map<std::string,
     std::cerr << "KTXorientation value error!" << std::endl;
     return false;
   }
+  return true;
+}
+
+bool CheckRGB(const imgpp::CompositeImg &img, const std::unordered_map<std::string, std::string> &kv_data) {
+  if (!CheckKV(kv_data)) {
+    return false;
+  }
   const auto &desc = img.TexDesc();
   if (desc.format != FORMAT_RGB8_UNORM_PACK8 || desc.target != TARGET_2D_ARRAY || desc.mipmap) {
-    std::cerr << "Texture desc error!" << std::endl;
+    std::cerr << "RGB Texture desc error!" << std::endl;
     return false;
   }
   const auto &roi0 = img.ROI(0, 0, 0);
@@ -51,9 +59,24 @@ bool Check(const imgpp::CompositeImg &img, const std::unordered_map<std::string,
   return true;
 }
 
-int main() {
-  imgpp::CompositeImg img;
-  std::unordered_map<std::string, std::string> kv_data;
+bool CheckASTC(const imgpp::CompositeImg &img, const std::unordered_map<std::string, std::string> &kv_data) {
+  if (!CheckKV(kv_data)) {
+    return false;
+  }
+  const auto &desc = img.TexDesc();
+  if (!IsCompressedFormat(desc.format) || desc.format != FORMAT_RGBA_ASTC_8X8_SRGB_BLOCK16 || desc.target != TARGET_2D) {
+    std::cerr << "ASTC Texture desc error!" << std::endl;
+    return false;
+  }
+  auto block_size = GetBlockSize(desc.format);
+  if (block_size.block_width != 8 || block_size.block_height != 8 || block_size.block_bytes != 16) {
+    std::cerr << "Block size info error!" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+std::vector<char> LoadKTXData(const char *fn) {
   std::ifstream in(fn, std::ios::binary);
   in.seekg(0, std::ios::end);
   size_t length = in.tellg();
@@ -61,21 +84,38 @@ int main() {
   std::vector<char> data(length);
   in.read((char*)data.data(), length);
   in.close();
-  if (!LoadKTX(data.data(), length, img, kv_data, false)) {
+  return data;
+}
+
+int main() {
+  imgpp::CompositeImg img;
+  std::unordered_map<std::string, std::string> kv_data;
+  auto rgb_data = LoadKTXData(kRGBFn);
+  if (!LoadKTX(rgb_data.data(), rgb_data.size(), img, kv_data, false)) {
     std::cerr << "Failed to load ktx from memory!" << std::endl;
     return 1;
   }
-  if (!WriteKTX(fn, img, kv_data, false)) {
+  if (!WriteKTX(kRGBFn, img, kv_data, false)) {
     std::cerr << "Failed to write ktx!" << std::endl;
     return 1;
   }
-  if (!LoadKTX(fn, img, kv_data, false)) {
+  if (!LoadKTX(kRGBFn, img, kv_data, false)) {
     std::cerr << "Failed to load ktx file!" << std::endl;
     return 1;
   }
-  if (Check(img, kv_data)) {
-    return 0;
-  } else {
+  if (!CheckRGB(img, kv_data)) {
     return 1;
+  }
+
+  kv_data.clear();
+  imgpp::CompositeImg astc_img;
+  if (!LoadKTX(kASTC8x8Fn, astc_img, kv_data, false)) {
+    std::cerr << "Failed to load ktx from memory!" << std::endl;
+    return 1;
+  }
+  if (!CheckASTC(astc_img, kv_data)) {
+    return 1;
+  } else {
+    return 0;
   }
 }
