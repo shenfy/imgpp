@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.7 LANGUAGES CXX)
+project(imgpp VERSION 2.1.8 LANGUAGES CXX)
 
-if (EXISTS ${CMAKE_BINARY_DIR}/conan_paths.cmake)
-  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-endif()
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
@@ -27,9 +26,6 @@ if (NOT DEFINED IMGPP_NO_EXT_LIBS)
   set(IMGPP_HEADER ${IMGPP_HEADER}
     include/imgpp/loadersext.hpp
     include/imgpp/opencvbinding.hpp)
-
-  find_package(JPEG REQUIRED)
-  find_package(PNG REQUIRED)
 endif()
 
 # static library
@@ -41,7 +37,7 @@ target_sources(imgpp PRIVATE
 if (NOT DEFINED IMGPP_NO_EXT_LIBS)
 target_sources(imgpp PRIVATE
   src/pngimg.cpp src/jpegimg.cpp)
-target_link_libraries(imgpp PUBLIC JPEG::JPEG PNG::PNG)
+target_link_libraries(imgpp PUBLIC CONAN_PKG::libjpeg-turbo CONAN_PKG::libpng)
 endif()
 
 target_compile_features(imgpp PUBLIC cxx_std_17)
