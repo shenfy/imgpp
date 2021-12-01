@@ -3,7 +3,7 @@ import os
 
 class ImgppConan(ConanFile):
     name = "imgpp"
-    version = "2.1.7"
+    version = "2.1.8"
     license = "MIT"
     author = "Fangyang Shen dev@shenfy.com"
     url = "https://github.com/shenfy/imgpp"
@@ -12,7 +12,7 @@ class ImgppConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [False], "no_ext_libs": [True, False]}
     default_options = {"shared": False, "no_ext_libs": False}
-    generators = "cmake_paths"
+    generators = "cmake"
     exports_sources = "src/*"
 
     def build(self):
