@@ -1,0 +1,67 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, windows-2019]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install system library dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install -y libgl1-mesa-dev libegl1-mesa-dev gcc-8 g++-8 gfortran-8
+
+      - name: Install Conan
+        run: |
+          pip3 install wheel setuptools
+          pip3 install conan
+
+      - name: Setup C++ toolchain
+        if: runner.os == 'Linux'
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+          conan profile new --detect default
+          conan profile update settings.compiler.libcxx=libstdc++11 default
+
+      - name: Add Conan remote
+        run: |
+          conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+          conan config set general.revisions_enabled=1
+          conan remote add oppen-public https://oppentech.jfrog.io/artifactory/api/conan/public
+
+      - name: Create build directory
+        run: |
+          mkdir ${{github.workspace}}/build
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        run: |
+          conan install ..
+          conan build ..
+          
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C Release --output-on-failure
