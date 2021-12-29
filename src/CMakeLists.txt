@@ -62,7 +62,7 @@ if (NOT DEFINED IMGPP_NO_EXT_LIBS)
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/test.png ${CMAKE_CURRENT_BINARY_DIR}/
     COMMENT "Copy test images to build folder")
   target_link_libraries(basictest PRIVATE imgpp)
-  add_test(basic basictest)
+  add_test(NAME basic COMMAND bin/basictest)
 
   add_executable(loadertest src/loadertest.cpp)
   add_custom_command(
@@ -70,12 +70,12 @@ if (NOT DEFINED IMGPP_NO_EXT_LIBS)
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/checkboard.ppm ${CMAKE_CURRENT_BINARY_DIR}/
     COMMENT "Copy test ppm image to build folder")
   target_link_libraries(loadertest PRIVATE imgpp)
-  add_test(loaders loadertest)
+  add_test(NAME loaders COMMAND bin/loadertest)
 endif()
 
 add_executable(clonetest src/clonetest.cpp)
 target_link_libraries(clonetest PRIVATE imgpp)
-add_test(clone clonetest)
+add_test(NAME clone COMMAND bin/clonetest)
 
 add_executable(ktxloadertest src/ktxloadertest.cpp)
 add_custom_command(
@@ -83,4 +83,4 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resrc/*.ktx ${CMAKE_CURRENT_BINARY_DIR}/
   COMMENT "Copy test ktx image to build folder")
 target_link_libraries(ktxloadertest PRIVATE imgpp)
-add_test(ktxloaders ktxloadertest)
+add_test(NAME ktxloaders COMMAND bin/ktxloadertest)

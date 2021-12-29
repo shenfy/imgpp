@@ -63,5 +63,5 @@ jobs:
           conan build ..
           
       - name: Test
-        working-directory: ${{github.workspace}}/build
-        run: ctest
+        working-directory: ${{github.workspace}}/build/bin
+        run: ctest --output-on-failure
