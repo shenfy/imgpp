@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imgpp VERSION 2.1.8 LANGUAGES CXX)
+project(imgpp VERSION 2.1.9 LANGUAGES CXX)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
