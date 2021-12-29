@@ -1,6 +1,8 @@
 # imgpp
 Simple C++ Image Wrapper
 
+[![CI](https://github.com/shenfy/imgpp/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/shenfy/imgpp/actions/workflows/ci.yml)
+
 ## Installation
 The following instructions are based on Ubuntu Linux 18.04 LTS.
 
@@ -14,11 +16,11 @@ $ conan remote add bintray-shenfy https://api.bintray.com/conan/shenfy/oss
 And ask for the latest imgpp in your project's conanfile.txt:
 ```
 [requires]
-imgpp/2.1.4@shenfy/testing
+imgpp/2.1.9@shenfy/testing
 ```
 or conanfile.py:
 ```python
-requires = "imgpp/2.1.4@shenfy/testing"
+requires = "imgpp/2.1.9@shenfy/testing"
 ```
 
 Please modify the string to request a specific version/channel of the library.
